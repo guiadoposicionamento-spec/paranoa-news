@@ -1,4 +1,8 @@
+export const FOTO_VAGAS = "/vagas-capa.jpg";
+
 export const SITE = {
+  /** Endereço público. Usado nos links de compartilhamento e nas etiquetas de SEO. */
+  url: "https://paranoanews.com.br",
   nome: "Paranoá News",
   descricao: "Informação local, todos os dias.",
   slogan: "Notícias, denúncias, comércio local e vagas de emprego no Paranoá.",

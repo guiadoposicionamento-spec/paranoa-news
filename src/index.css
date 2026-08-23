@@ -211,6 +211,30 @@ body {
     }
   }
 
+  /* ---------- Compartilhar ---------- */
+
+  .botao-compartilhar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    background: #F3F4F6;
+    color: #2A2C31;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .botao-compartilhar:hover { background: #E7E9EC; transform: translateY(-1px); }
+
+  /* ---------- Editor da redação ---------- */
+
+  .editor-corpo p { margin-bottom: 1rem; }
+  .editor-corpo:empty::before { content: ""; }
+  .editor-corpo h2 { margin-top: 1.5rem; }
+  .editor-corpo blockquote { margin: 1.25rem 0; }
+
   /* ---------- Faixa de publicidade ----------
      Mesma proporção da arte enviada, 1200 x 200 (6 por 1), no computador e
      no celular. Já testei engordar a moldura no celular: ela corta as

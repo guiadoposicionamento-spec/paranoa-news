@@ -525,3 +525,13 @@ drop trigger if exists trg_limite_banners on public.banners;
 create trigger trg_limite_banners
   before insert or update of espaco on public.banners
   for each row execute function public.checar_limite_banners();
+
+
+-- =====================================================================
+-- 13. LEGENDA DA FOTO DE CAPA
+--     Texto de crédito exibido abaixo da imagem, na página da matéria.
+-- =====================================================================
+
+alter table public.noticias add column if not exists foto_credito text;
+comment on column public.noticias.foto_credito is
+  'Legenda ou crédito exibido abaixo da foto de capa. Ex: "Foto: Corpo de Bombeiros/DF".';

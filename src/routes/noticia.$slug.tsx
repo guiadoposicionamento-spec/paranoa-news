@@ -8,6 +8,8 @@ import { NoticiaCard, type Noticia } from "@/components/NoticiaCard";
 import { supabase } from "@/integrations/supabase/client";
 import { corCategoria, nomeCategoria } from "@/lib/categorias";
 import { formatarData, SITE } from "@/lib/site";
+import { prepararCorpo, apenasTexto } from "@/lib/texto";
+import { Compartilhar } from "@/components/Compartilhar";
 
 export const Route = createFileRoute("/noticia/$slug")({ component: NoticiaPage });
 
@@ -24,7 +26,9 @@ function NoticiaPage() {
         .eq("status", "publicado")
         .maybeSingle();
       if (error) throw error;
-      return data as (Noticia & { conteudo?: string; conteudo_html?: string }) | null;
+      return data as
+        | (Noticia & { conteudo?: string; conteudo_html?: string; foto_credito?: string | null })
+        | null;
     },
   });
 
@@ -44,9 +48,27 @@ function NoticiaPage() {
     },
   });
 
+  // As etiquetas que o WhatsApp e o Facebook leem são escritas antes, na
+  // função de borda do Netlify — robôs de rede social não executam
+  // JavaScript. Isto aqui é para o navegador de quem já está na página e
+  // para buscadores que executam script.
   useEffect(() => {
-    if (noticia?.titulo) document.title = `${noticia.titulo} | ${SITE.nome}`;
-  }, [noticia?.titulo]);
+    if (!noticia?.titulo) return;
+    document.title = `${noticia.titulo} | ${SITE.nome}`;
+
+    const descricao = noticia.resumo || apenasTexto(noticia.conteudo ?? "", 200);
+    const imagem = noticia.foto_capa || "";
+
+    definirMeta("property", "og:title", noticia.titulo);
+    definirMeta("property", "og:description", descricao);
+    definirMeta("property", "og:type", "article");
+    definirMeta("name", "description", descricao);
+    if (imagem) definirMeta("property", "og:image", imagem);
+    if (typeof window !== "undefined") {
+      definirMeta("property", "og:url", window.location.href);
+      definirLinkCanonico(window.location.href);
+    }
+  }, [noticia?.titulo, noticia?.resumo, noticia?.foto_capa, noticia?.conteudo]);
 
   if (isLoading) {
     return (
@@ -82,7 +104,10 @@ function NoticiaPage() {
     );
   }
 
-  const corpo = noticia.conteudo_html || noticia.conteudo || "";
+  // Matéria antiga escrita como texto solto também vira parágrafos aqui
+  const corpo = prepararCorpo(noticia.conteudo_html || noticia.conteudo);
+  const enderecoDaMateria =
+    typeof window !== "undefined" ? window.location.href : `${SITE.url}/noticia/${slug}`;
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -115,19 +140,33 @@ function NoticiaPage() {
           Por <strong className="text-gray-800">{noticia.autor}</strong> · {formatarData(noticia.data_publicacao)}
         </p>
 
+        <Compartilhar url={enderecoDaMateria} titulo={noticia.titulo} />
+
         {noticia.foto_capa && (
-          <figure className="mb-8 rounded-xl overflow-hidden bg-gray-100">
+          <figure className="mt-8 mb-8">
             {/* Moldura fixa em 16/9: foto em pé ou deitada ocupa o mesmo espaço
                 e nunca empurra o texto da matéria para fora da tela. */}
-            <img
-              src={noticia.foto_capa}
-              alt={noticia.titulo}
-              className="w-full object-cover block aspect-[16/9]"
-            />
+            <div className="rounded-xl overflow-hidden bg-gray-100">
+              <img
+                src={noticia.foto_capa}
+                alt={noticia.titulo}
+                className="w-full object-cover block aspect-[16/9]"
+              />
+            </div>
+            {noticia.foto_credito && (
+              <figcaption className="text-xs text-gray-500 mt-2 leading-relaxed">
+                {noticia.foto_credito}
+              </figcaption>
+            )}
           </figure>
         )}
 
         <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: corpo }} />
+
+        <div className="mt-10 pt-7 border-t border-gray-100">
+          <p className="rotulo mb-3">Compartilhe esta matéria</p>
+          <Compartilhar url={enderecoDaMateria} titulo={noticia.titulo} />
+        </div>
 
         <div className="surface-ink text-white rounded-xl mt-14 p-8 text-center">
           <p className="titulo-secao text-2xl">Viu algo errado no bairro?</p>
@@ -150,4 +189,28 @@ function NoticiaPage() {
       <Footer />
     </div>
   );
+}
+
+/** Cria ou atualiza uma etiqueta <meta> no cabeçalho da página. */
+function definirMeta(tipo: "name" | "property", chave: string, valor: string) {
+  if (typeof document === "undefined" || !valor) return;
+  let tag = document.head.querySelector<HTMLMetaElement>(`meta[${tipo}="${chave}"]`);
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute(tipo, chave);
+    document.head.appendChild(tag);
+  }
+  tag.setAttribute("content", valor);
+}
+
+/** Diz ao Google qual é o endereço oficial desta matéria. */
+function definirLinkCanonico(url: string) {
+  if (typeof document === "undefined") return;
+  let tag = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.rel = "canonical";
+    document.head.appendChild(tag);
+  }
+  tag.href = url;
 }

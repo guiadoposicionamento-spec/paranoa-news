@@ -2,6 +2,12 @@
   command = "npm run build"
   publish = "dist/client"
 
+# Escreve titulo, resumo e foto de cada materia dentro do HTML antes de
+# entregar a pagina, para o WhatsApp e o Facebook mostrarem a previa certa.
+[[edge_functions]]
+  path = "/noticia/*"
+  function = "noticia-meta"
+
 [[headers]]
   for = "/*"
   [headers.values]

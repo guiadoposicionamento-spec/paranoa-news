@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CATEGORIAS } from "@/lib/categorias";
 import { gerarSlug } from "@/lib/site";
 import { ImagemUpload } from "@/components/ImagemUpload";
+import { EditorTexto } from "@/components/EditorTexto";
 
 export interface NoticiaForm {
   titulo: string;
@@ -13,6 +14,7 @@ export interface NoticiaForm {
   status: string;
   foto_capa: string;
   foto_capa_path: string | null;
+  foto_credito: string;
   data_publicacao: string;
 }
 
@@ -27,6 +29,7 @@ export function formVazio(): NoticiaForm {
     status: "rascunho",
     foto_capa: "",
     foto_capa_path: null,
+    foto_credito: "",
     data_publicacao: new Date().toISOString().slice(0, 16),
   };
 }
@@ -76,11 +79,10 @@ export function NoticiaFormFields({ valores, onChange, onSubmit, salvando, erro,
         />
       </Campo>
 
-      <Campo label="Conteúdo (aceita HTML: <p>, <h2>, <img>, <a>)">
-        <textarea
-          value={valores.conteudo}
-          onChange={(e) => set({ conteudo: e.target.value })}
-          className="campo h-64 font-mono"
+      <Campo label="Conteúdo">
+        <EditorTexto
+          valor={valores.conteudo}
+          onChange={(html) => set({ conteudo: html })}
         />
       </Campo>
 
@@ -92,6 +94,17 @@ export function NoticiaFormFields({ valores, onChange, onSubmit, salvando, erro,
         proporcao="16 / 9"
         onChange={({ url, path }) => set({ foto_capa: url, foto_capa_path: path })}
       />
+
+      {valores.foto_capa && (
+        <Campo label="Legenda ou crédito da foto">
+          <input
+            value={valores.foto_credito}
+            onChange={(e) => set({ foto_credito: e.target.value })}
+            placeholder="Ex: Foto: Corpo de Bombeiros / Divulgação"
+            className="campo"
+          />
+        </Campo>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-4">
         <Campo label="Categoria">
