@@ -1,0 +1,1 @@
+import{c as e}from"./createLucideIcon-q_p68ArO.js";const a=[["path",{d:"M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16",key:"jecpp"}],["rect",{width:"20",height:"14",x:"2",y:"6",rx:"2",key:"i6l2r4"}]],t=e("briefcase",a);const c=[["path",{d:"m3 11 18-5v12L3 14v-3z",key:"n962bs"}],["path",{d:"M11.6 16.8a3 3 0 1 1-5.8-1.6",key:"1yl0tm"}]],n=e("megaphone",c);export{t as B,n as M};

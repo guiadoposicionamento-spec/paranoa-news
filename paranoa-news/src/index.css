@@ -1,0 +1,189 @@
+@import "tailwindcss";
+
+:root {
+  /* Marca */
+  --brand-red: #E10600;
+  --brand-red-dark: #B00500;
+  --brand-ink: #0B0B0C;
+  --brand-ink-2: #16171A;
+  --brand-line: rgba(255, 255, 255, 0.10);
+
+  /* Superfícies claras */
+  --surface: #FFFFFF;
+  --surface-muted: #F5F6F7;
+  --border: #E6E8EB;
+  --text: #17181B;
+  --text-soft: #6B7280;
+}
+
+@theme {
+  --color-brand-primary: #E10600;
+  --color-brand-red-dark: #B00500;
+  --color-brand-ink: #0B0B0C;
+  --color-brand-ink-2: #16171A;
+  --font-display: "Inter", system-ui, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+  background: var(--surface-muted);
+}
+
+@layer components {
+  /* ---------- Utilitários de marca ---------- */
+
+  .bg-brand-primary { background-color: var(--brand-red); }
+  .text-brand-primary { color: var(--brand-red); }
+  .border-brand-primary { border-color: var(--brand-red); }
+  .bg-brand-dark { background-color: var(--brand-ink); }
+
+  /* Fundo escuro com um brilho vermelho discreto no canto */
+  .surface-ink {
+    background-color: var(--brand-ink);
+    background-image:
+      radial-gradient(120% 90% at 88% 0%, rgba(225, 6, 0, 0.30) 0%, rgba(225, 6, 0, 0) 55%),
+      radial-gradient(80% 70% at 0% 100%, rgba(225, 6, 0, 0.12) 0%, rgba(225, 6, 0, 0) 60%);
+  }
+
+  /* Mantido por compatibilidade: agora escuro, não vermelho chapado */
+  .bg-brand-gradient {
+    background-color: var(--brand-ink);
+    background-image: radial-gradient(120% 90% at 88% 0%, rgba(225, 6, 0, 0.30) 0%, rgba(225, 6, 0, 0) 55%);
+  }
+
+  .container-portal {
+    width: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 1.25rem;
+  }
+
+  /* ---------- Tipografia editorial ---------- */
+
+  .titulo-hero {
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 0.98;
+  }
+
+  .titulo-secao {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  /* Cartola de seção: linha vermelha curta + texto */
+  .cartola {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .cartola::before {
+    content: "";
+    width: 26px;
+    height: 3px;
+    background: var(--brand-red);
+    border-radius: 2px;
+  }
+
+  .cartola-clara { color: rgba(255, 255, 255, 0.75); }
+
+  /* ---------- Componentes ---------- */
+
+  .cartao {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .botao-vermelho {
+    background: var(--brand-red);
+    color: #fff;
+    font-weight: 700;
+    border-radius: 8px;
+    transition: background-color .15s ease, transform .15s ease;
+  }
+  .botao-vermelho:hover { background: var(--brand-red-dark); }
+  .botao-vermelho:active { transform: translateY(1px); }
+
+  .botao-contorno {
+    background: transparent;
+    color: var(--text);
+    font-weight: 700;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .botao-contorno:hover { border-color: var(--brand-red); color: var(--brand-red); }
+
+  .campo {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.8rem;
+    font-size: 0.875rem;
+    background: #fff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .campo:focus {
+    outline: none;
+    border-color: var(--brand-red);
+    box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.12);
+  }
+
+  .rotulo {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-soft);
+  }
+
+  .tarja {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+  }
+
+  /* ---------- Utilidades ---------- */
+
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* ---------- Corpo da matéria ---------- */
+
+  .prose { font-size: 1.0625rem; color: #2A2C31; }
+  .prose p { margin-bottom: 1.15rem; line-height: 1.75; }
+  .prose h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 2.25rem 0 0.75rem; }
+  .prose h3 { font-size: 1.2rem; font-weight: 800; margin: 1.75rem 0 0.5rem; }
+  .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1.15rem; }
+  .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1.15rem; }
+  .prose li { margin-bottom: 0.4rem; line-height: 1.7; }
+  .prose a { color: var(--brand-red); text-decoration: underline; text-underline-offset: 2px; }
+  .prose img { border-radius: 8px; margin: 1.75rem 0; }
+  .prose blockquote {
+    border-left: 3px solid var(--brand-red);
+    padding: 0.25rem 0 0.25rem 1.15rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #17181B;
+    margin: 1.75rem 0;
+  }
+}

@@ -1,0 +1,118 @@
+# =====================================================================
+#  Paranoa News - envia o codigo para o GitHub
+#  Clique com o botao direito neste arquivo e escolha
+#  "Executar com o PowerShell", ou rode: .\enviar-para-github.ps1
+# =====================================================================
+
+$ErrorActionPreference = "Stop"
+$REPO = "https://github.com/guiadoposicionamento-spec/paranoa-news.git"
+
+function Passo($texto) { Write-Host "`n>> $texto" -ForegroundColor Cyan }
+function Ok($texto)    { Write-Host "   OK: $texto" -ForegroundColor Green }
+function Falha($texto) { Write-Host "`n   ERRO: $texto" -ForegroundColor Red }
+
+# --- Vai para a pasta onde este script esta ---------------------------
+Set-Location -Path $PSScriptRoot
+Write-Host "Pasta do projeto: $PSScriptRoot" -ForegroundColor Yellow
+
+if (-not (Test-Path "package.json")) {
+  Falha "Nao achei o package.json aqui. Coloque este script dentro da pasta paranoa-news."
+  Read-Host "`nEnter para fechar"; exit 1
+}
+
+# --- 1. Git instalado? -----------------------------------------------
+Passo "Conferindo o Git"
+try {
+  $v = git --version
+  Ok $v
+} catch {
+  Falha "O Git nao esta instalado. Baixe em https://git-scm.com/download/win, instale com as opcoes padrao, feche e reabra o PowerShell e rode este script de novo."
+  Read-Host "`nEnter para fechar"; exit 1
+}
+
+# --- 2. Identificacao -------------------------------------------------
+Passo "Conferindo sua identificacao no Git"
+$nome  = (git config --global user.name)  2>$null
+$email = (git config --global user.email) 2>$null
+if (-not $nome)  { git config --global user.name  "Junior";                        Ok "nome definido" }
+if (-not $email) { git config --global user.email "guiadoposicionamento@gmail.com"; Ok "email definido" }
+Ok "identificacao pronta"
+
+# --- 3. Repositorio local --------------------------------------------
+Passo "Preparando o repositorio local"
+if (-not (Test-Path ".git")) {
+  git init | Out-Null
+  Ok "repositorio criado"
+} else {
+  Ok "repositorio ja existia"
+}
+
+git branch -M main
+Ok "branch main"
+
+# --- 4. Conferir que o .env ficara de fora ---------------------------
+Passo "Conferindo que as chaves do Supabase NAO vao para o GitHub"
+if (Select-String -Path ".gitignore" -Pattern "^\.env$" -Quiet) {
+  Ok ".env esta protegido pelo .gitignore"
+} else {
+  Add-Content ".gitignore" "`n.env"
+  Ok ".env adicionado ao .gitignore agora"
+}
+
+# --- 5. Commit --------------------------------------------------------
+Passo "Registrando os arquivos"
+git add -A
+$temMudanca = (git status --porcelain)
+if ($temMudanca) {
+  git commit -m "Portal Paranoa News" | Out-Null
+  Ok "commit feito"
+} else {
+  Ok "nada novo para registrar"
+}
+
+# --- 6. Remote --------------------------------------------------------
+Passo "Apontando para o repositorio no GitHub"
+$remotes = (git remote) 2>$null
+if ($remotes -contains "origin") {
+  git remote set-url origin $REPO
+  Ok "endereco atualizado"
+} else {
+  git remote add origin $REPO
+  Ok "endereco cadastrado"
+}
+
+# --- 7. Push ----------------------------------------------------------
+Passo "Enviando para o GitHub"
+Write-Host "   Pode abrir uma janela pedindo para voce entrar no GitHub. Autorize." -ForegroundColor Yellow
+git push -u origin main
+
+if ($LASTEXITCODE -ne 0) {
+  Falha "O envio falhou. Copie a mensagem acima e mande para o Claude."
+  Read-Host "`nEnter para fechar"; exit 1
+}
+
+Write-Host "`n=====================================================" -ForegroundColor Green
+Write-Host " CODIGO ENVIADO COM SUCESSO" -ForegroundColor Green
+Write-Host "=====================================================" -ForegroundColor Green
+Write-Host @"
+
+Falta so uma coisa, no painel do Netlify:
+
+  Site configuration > Environment variables > Add a variable
+
+Cadastre estas duas (Key e Value):
+
+  VITE_SUPABASE_URL
+  https://nfzvhunorauozfpbmlou.supabase.co
+
+  VITE_SUPABASE_ANON_KEY
+  (o valor esta no arquivo .env desta pasta)
+
+Depois va em Deploys e clique em "Trigger deploy" > "Clear cache and deploy site".
+
+Sem essas duas variaveis o site sobe em branco, porque nao consegue
+falar com o banco de dados.
+
+"@ -ForegroundColor White
+
+Read-Host "Enter para fechar"
