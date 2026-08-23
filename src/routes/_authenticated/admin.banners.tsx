@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PROPORCAO_BANNER } from "@/components/Banners";
+import { PROPORCAO_BANNER, PROPORCAO_RETRATO } from "@/components/Banners";
 import { PROPORCAO_FAIXA } from "@/components/Faixa";
 import { prepararImagem } from "@/lib/imagem";
 
@@ -11,6 +11,12 @@ export const Route = createFileRoute("/_authenticated/admin/banners")({ componen
 
 // Cada formato tem sua moldura, sua largura ideal e seu recado na tela.
 const FORMATOS: Record<string, { proporcao: string; largura: number; medida: string; onde: string }> = {
+  retrato: {
+    proporcao: PROPORCAO_RETRATO,
+    largura: 1080,
+    medida: "1080 x 1350 pixels (o mesmo do post de Instagram, 4 por 5)",
+    onde: "na página inicial, logo depois das notícias",
+  },
   cartao: {
     proporcao: PROPORCAO_BANNER,
     largura: 1080,
@@ -25,7 +31,7 @@ const FORMATOS: Record<string, { proporcao: string; largura: number; medida: str
   },
 };
 
-const formatoDe = (espaco: any) => FORMATOS[espaco?.formato ?? "cartao"] ?? FORMATOS.cartao;
+const formatoDe = (espaco: any) => FORMATOS[espaco?.formato ?? "retrato"] ?? FORMATOS.retrato;
 
 function BannersAdmin() {
   const qc = useQueryClient();
@@ -78,7 +84,12 @@ function BannersAdmin() {
 
   if (isLoading) return <p className="text-gray-400">Carregando banners...</p>;
 
-  const espacos = (data?.espacos ?? []) as any[];
+  // Os quatro da home primeiro, a faixa por último — na mesma ordem em que
+  // aparecem no site, para não confundir quem está cadastrando.
+  const espacos = [...((data?.espacos ?? []) as any[])].sort(
+    (a, b) =>
+      Number(a.formato === "faixa") - Number(b.formato === "faixa") || a.id - b.id,
+  );
   const banners = (data?.banners ?? []) as any[];
 
   return (
@@ -86,9 +97,10 @@ function BannersAdmin() {
       <h1 className="titulo-secao text-2xl mb-2">Banners</h1>
       <p className="text-sm text-gray-500 mb-6 max-w-2xl">
         A <strong className="text-gray-700">faixa</strong> aparece no topo e no rodapé de todas as
-        páginas e aceita até 3 clientes. Os <strong className="text-gray-700">três espaços de
-        cartão</strong> ficam só na página inicial, depois das notícias. Onde houver mais de um
-        cliente, eles giram em rodízio. Espaço vazio vira um convite "Anuncie aqui".
+        páginas e aceita até 3 clientes. Os <strong className="text-gray-700">quatro espaços da
+        home</strong> ficam na página inicial, depois das notícias, no formato de post de
+        Instagram. Onde houver mais de um cliente, eles giram em rodízio. Espaço vazio vira um
+        convite "Anuncie aqui".
       </p>
 
       {erro && (
@@ -101,8 +113,9 @@ function BannersAdmin() {
       <div className="cartao p-5 mb-8 flex items-start gap-3">
         <ImageIcon size={20} className="text-brand-primary shrink-0 mt-0.5" />
         <div className="text-sm text-gray-600 leading-relaxed">
-          <strong className="text-gray-900">Tamanho da arte:</strong> a faixa pede{" "}
-          <strong>1200 x 200 pixels</strong> e os cartões pedem <strong>900 x 500</strong>. Mande em
+          <strong className="text-gray-900">Tamanho da arte:</strong> os quatro espaços da home
+          pedem <strong>1080 x 1350 pixels</strong> — a mesma arte do post de Instagram. A faixa
+          pede <strong>1200 x 200</strong>. Mande em
           JPG, PNG ou WEBP — o arquivo é reduzido sozinho antes de subir, então pode enviar a arte em
           alta. Imagem fora da proporção é cortada nas bordas para não quebrar o layout, por isso
           evite deixar texto ou logo colado na beirada.
@@ -339,7 +352,7 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
                   <img
                     src={b.imagem_url}
                     alt={b.cliente}
-                    className={`${espaco.formato === "faixa" ? "w-44" : "w-32"} rounded-lg object-cover border border-[color:var(--border)] ${
+                    className={`${espaco.formato === "faixa" ? "w-44" : espaco.formato === "retrato" ? "w-24" : "w-32"} rounded-lg object-cover border border-[color:var(--border)] ${
                       b.ativo ? "" : "opacity-40 grayscale"
                     }`}
                     style={{ aspectRatio: formato.proporcao }}

@@ -21,8 +21,18 @@ interface Espaco {
   formato?: string;
 }
 
-// Proporção de cartão de visita: 9 x 5 cm
+// Retrato do Instagram, 4 x 5 — é o formato que o comerciante já tem pronto,
+// porque é a mesma arte que ele publica no feed.
+export const PROPORCAO_RETRATO = "4 / 5";
+
+// Cartão de visita deitado, 9 x 5. Continua aqui para espaços antigos.
 export const PROPORCAO_BANNER = "9 / 5";
+
+export function proporcaoDoFormato(formato?: string | null) {
+  if (formato === "faixa") return "6 / 1";
+  if (formato === "cartao") return PROPORCAO_BANNER;
+  return PROPORCAO_RETRATO;
+}
 
 export function Banners() {
   const { data } = useQuery({
@@ -39,33 +49,44 @@ export function Banners() {
     },
   });
 
-  const espacos: Espaco[] = data?.espacos ?? [1, 2, 3].map((id) => ({
+  const espacos: Espaco[] = data?.espacos ?? [1, 2, 3, 5].map((id) => ({
     id,
     nome: `Espaço ${id}`,
     intervalo_segundos: 6,
     ativo: true,
-    formato: "cartao",
+    formato: "retrato",
   }));
 
-  // Só os espaços de cartão entram nesta grade. A faixa larga tem componente
+  // Tudo que não é faixa entra nesta grade. A faixa larga tem componente
   // próprio (Faixa.tsx) e aparece no topo e no rodapé de todas as páginas.
-  const visiveis = espacos.filter((e) => e.ativo && (e.formato ?? "cartao") === "cartao");
+  const visiveis = espacos.filter((e) => e.ativo && e.formato !== "faixa");
   if (visiveis.length === 0) return null;
 
+  // Dois por linha no celular e quatro no computador. Um por linha no
+  // celular empilharia quatro retratos e a home viraria um mural de anúncios.
   return (
-    <section className="grid sm:grid-cols-3 gap-4">
+    <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {visiveis.map((espaco) => (
         <EspacoBanner
           key={espaco.id}
           banners={(data?.banners ?? []).filter((b) => b.espaco === espaco.id)}
           intervalo={espaco.intervalo_segundos}
+          proporcao={proporcaoDoFormato(espaco.formato)}
         />
       ))}
     </section>
   );
 }
 
-function EspacoBanner({ banners, intervalo }: { banners: Banner[]; intervalo: number }) {
+function EspacoBanner({
+  banners,
+  intervalo,
+  proporcao,
+}: {
+  banners: Banner[];
+  intervalo: number;
+  proporcao: string;
+}) {
   const [atual, setAtual] = useState(0);
 
   useEffect(() => {
@@ -81,12 +102,12 @@ function EspacoBanner({ banners, intervalo }: { banners: Banner[]; intervalo: nu
     if (atual >= banners.length) setAtual(0);
   }, [banners.length, atual]);
 
-  if (banners.length === 0) return <EspacoLivre />;
+  if (banners.length === 0) return <EspacoLivre proporcao={proporcao} />;
 
   return (
     <div
       className="relative overflow-hidden rounded-xl bg-brand-ink"
-      style={{ aspectRatio: PROPORCAO_BANNER }}
+      style={{ aspectRatio: proporcao }}
     >
       {banners.map((b, i) => (
         <BannerImagem key={b.id} banner={b} visivel={i === atual} />
@@ -143,18 +164,20 @@ function BannerImagem({ banner, visivel }: { banner: Banner; visivel: boolean })
 }
 
 // Espaço sem anunciante vira uma vitrine para vender o espaço
-function EspacoLivre() {
+function EspacoLivre({ proporcao }: { proporcao: string }) {
   return (
     <Link
       to="/anuncie"
-      className="group flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-300 bg-white hover:border-brand-primary transition p-5"
-      style={{ aspectRatio: PROPORCAO_BANNER }}
+      className="group flex flex-col items-center justify-center text-center rounded-xl border border-dashed border-gray-300 bg-white hover:border-brand-primary transition p-3 sm:p-5"
+      style={{ aspectRatio: proporcao }}
     >
-      <span className="w-10 h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition">
-        <Store size={19} />
+      <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition">
+        <Store size={18} />
       </span>
-      <p className="font-bold text-gray-800 mt-3 tracking-tight">Anuncie aqui</p>
-      <p className="text-xs text-gray-500 mt-1 max-w-[22ch] leading-relaxed">
+      <p className="font-bold text-gray-800 mt-2.5 tracking-tight text-sm sm:text-base">
+        Anuncie aqui
+      </p>
+      <p className="text-[11px] sm:text-xs text-gray-500 mt-1 max-w-[20ch] leading-snug">
         Sua marca na frente de quem mora no Paranoá.
       </p>
     </Link>

@@ -535,3 +535,26 @@ create trigger trg_limite_banners
 alter table public.noticias add column if not exists foto_credito text;
 comment on column public.noticias.foto_credito is
   'Legenda ou crédito exibido abaixo da foto de capa. Ex: "Foto: Corpo de Bombeiros/DF".';
+
+
+-- =====================================================================
+-- 14. ESPAÇOS DA HOME NO FORMATO DE POST DE INSTAGRAM
+--     Os tres espacos passam de cartao de visita (9x5) para retrato (4x5)
+--     e entra um quarto. A arte pedida vira 1080 x 1350.
+-- =====================================================================
+
+alter table public.banner_espacos drop constraint if exists banner_espacos_formato_check;
+alter table public.banner_espacos add constraint banner_espacos_formato_check
+  check (formato in ('cartao','retrato','faixa'));
+
+update public.banner_espacos set formato = 'retrato' where id in (1,2,3);
+update public.banner_espacos set nome = 'Espaço 1' where id = 1;
+update public.banner_espacos set nome = 'Espaço 2' where id = 2;
+update public.banner_espacos set nome = 'Espaço 3' where id = 3;
+
+insert into public.banner_espacos (id, nome, intervalo_segundos, ativo, formato, limite)
+values (5, 'Espaço 4', 6, true, 'retrato', 99)
+on conflict (id) do update set
+  nome    = excluded.nome,
+  formato = excluded.formato,
+  ativo   = excluded.ativo;
