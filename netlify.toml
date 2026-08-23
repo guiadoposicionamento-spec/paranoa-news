@@ -9,12 +9,57 @@
 #   seo.ts      -> "/", "/vagas", "/denuncie", "/anuncie", "/noticia/*", "/categoria/*"
 #   sitemap.ts  -> "/sitemap.xml", "/sitemap-noticias.xml"
 
+# ---------------------------------------------------------------------
+# Cabecalhos de seguranca
+# ---------------------------------------------------------------------
 [[headers]]
   for = "/*"
   [headers.values]
+    # Obriga o navegador a usar HTTPS por 6 meses, mesmo que alguem digite
+    # http:// ou clique num link antigo. Sem preload e sem includeSubDomains
+    # de proposito, para nao travar um subdominio futuro sem certificado.
+    Strict-Transport-Security = "max-age=15768000"
+
+    # Ninguem coloca o portal dentro de um iframe (golpe de clique disfarcado)
     X-Frame-Options = "DENY"
+
+    # O navegador respeita o tipo declarado do arquivo e nao "adivinha"
     X-Content-Type-Options = "nosniff"
+
+    # Nao vaza o endereco completo da pagina para sites de terceiros
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # O site nao usa camera, microfone, localizacao nem pagamento do navegador
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+
+    # De onde a pagina pode carregar cada tipo de recurso.
+    #
+    # script-src precisa de 'unsafe-inline' porque o proprio framework grava
+    # dois scripts curtos direto no HTML. Mesmo assim, a regra impede o que
+    # importa: carregar codigo de qualquer outro dominio.
+    #
+    # img-src aceita https: em geral porque a redacao pode usar foto de
+    # agencia hospedada fora. connect-src so libera o Supabase.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+
+# O painel e o login nao devem ser guardados em cache nem indexados
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/auth"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/painel"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
 
 [[headers]]
   for = "/robots.txt"
