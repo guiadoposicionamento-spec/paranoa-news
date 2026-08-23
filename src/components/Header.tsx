@@ -3,7 +3,17 @@ import { Menu, X, Megaphone, Briefcase, Store } from "lucide-react";
 import { useState } from "react";
 import { CATEGORIAS, NAV_CATEGORIAS } from "@/lib/categorias";
 import { SITE } from "@/lib/site";
+import { Faixa } from "@/components/Faixa";
 
+/**
+ * O cabeçalho também entrega a faixa de publicidade do topo. Como todas as
+ * páginas públicas usam Header e Footer, a faixa passa a aparecer no site
+ * inteiro sem precisar ser repetida rota por rota — e continua fora do painel
+ * administrativo, que não usa nenhum dos dois.
+ *
+ * A faixa fica FORA do <header>, senão herdaria o sticky e ocuparia tela o
+ * tempo todo. Assim ela rola junto com a página e só o menu gruda no topo.
+ */
 export function Header() {
   const [open, setOpen] = useState(false);
 
@@ -12,6 +22,7 @@ export function Header() {
   const navAtivo = "text-white after:absolute after:left-3 after:right-3 after:bottom-0 after:h-[3px] after:bg-brand-primary";
 
   return (
+    <>
     <header className="sticky top-0 z-50 bg-brand-ink">
       <div className="h-[3px] bg-brand-primary" />
 
@@ -122,5 +133,8 @@ export function Header() {
         </div>
       )}
     </header>
+
+    <Faixa posicao="topo" />
+    </>
   );
 }

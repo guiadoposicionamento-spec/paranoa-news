@@ -464,3 +464,64 @@ drop policy if exists "Redacao apaga imagem de materia" on storage.objects;
 create policy "Redacao apaga imagem de materia" on storage.objects
   for delete to authenticated
   using (bucket_id = 'noticias' and public.eh_redacao());
+
+
+-- =====================================================================
+-- 12. FAIXA DE PUBLICIDADE EM TODAS AS PÁGINAS
+--     Espaço 4, formato "faixa" (1200 x 200), exibido no topo e no rodapé
+--     de toda página pública. Aceita no máximo 3 anunciantes em rodízio.
+-- =====================================================================
+
+alter table public.banner_espacos drop constraint if exists banner_espacos_id_check;
+alter table public.banner_espacos add constraint banner_espacos_id_check check (id >= 1 and id <= 8);
+
+alter table public.banner_espacos add column if not exists formato text not null default 'cartao';
+alter table public.banner_espacos add column if not exists limite  integer not null default 99;
+
+alter table public.banner_espacos drop constraint if exists banner_espacos_formato_check;
+alter table public.banner_espacos add constraint banner_espacos_formato_check
+  check (formato in ('cartao','faixa'));
+
+insert into public.banner_espacos (id, nome, intervalo_segundos, ativo, formato, limite)
+values (4, 'Faixa em todas as páginas', 7, true, 'faixa', 3)
+on conflict (id) do update set
+  nome    = excluded.nome,
+  formato = excluded.formato,
+  limite  = excluded.limite;
+
+-- O teto de anunciantes é cobrado no banco, não só na tela do painel
+create or replace function public.checar_limite_banners()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  teto   integer;
+  atuais integer;
+begin
+  select limite into teto from public.banner_espacos where id = new.espaco;
+  if teto is null then
+    return new;
+  end if;
+
+  select count(*) into atuais
+    from public.banners
+   where espaco = new.espaco
+     and (tg_op = 'INSERT' or id <> new.id);
+
+  if atuais >= teto then
+    raise exception 'Este espaço aceita no máximo % anunciante(s). Remova um antes de adicionar outro.', teto
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end;
+$$;
+
+revoke execute on function public.checar_limite_banners() from anon, public;
+
+drop trigger if exists trg_limite_banners on public.banners;
+create trigger trg_limite_banners
+  before insert or update of espaco on public.banners
+  for each row execute function public.checar_limite_banners();

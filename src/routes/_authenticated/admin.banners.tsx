@@ -4,10 +4,28 @@ import { useRef, useState } from "react";
 import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PROPORCAO_BANNER } from "@/components/Banners";
+import { PROPORCAO_FAIXA } from "@/components/Faixa";
+import { prepararImagem } from "@/lib/imagem";
 
 export const Route = createFileRoute("/_authenticated/admin/banners")({ component: BannersAdmin });
 
-const TAMANHO_MAX = 5 * 1024 * 1024;
+// Cada formato tem sua moldura, sua largura ideal e seu recado na tela.
+const FORMATOS: Record<string, { proporcao: string; largura: number; medida: string; onde: string }> = {
+  cartao: {
+    proporcao: PROPORCAO_BANNER,
+    largura: 1080,
+    medida: "900 x 500 pixels (proporção de cartão de visita, 9 por 5)",
+    onde: "na página inicial, logo depois das notícias",
+  },
+  faixa: {
+    proporcao: PROPORCAO_FAIXA,
+    largura: 1600,
+    medida: "1200 x 200 pixels (faixa larga, 6 por 1)",
+    onde: "no topo e no rodapé de todas as páginas do site",
+  },
+};
+
+const formatoDe = (espaco: any) => FORMATOS[espaco?.formato ?? "cartao"] ?? FORMATOS.cartao;
 
 function BannersAdmin() {
   const qc = useQueryClient();
@@ -27,6 +45,7 @@ function BannersAdmin() {
   const invalidar = () => {
     qc.invalidateQueries({ queryKey: ["admin", "banners"] });
     qc.invalidateQueries({ queryKey: ["banners", "home"] });
+    qc.invalidateQueries({ queryKey: ["banners", "faixa"] });
   };
 
   const salvarEspaco = useMutation({
@@ -66,8 +85,10 @@ function BannersAdmin() {
     <div>
       <h1 className="titulo-secao text-2xl mb-2">Banners</h1>
       <p className="text-sm text-gray-500 mb-6 max-w-2xl">
-        Três espaços de publicidade aparecem na home, logo depois das notícias. Cada espaço aceita
-        vários banners, que giram em rodízio. Espaço sem banner mostra um convite "Anuncie aqui".
+        A <strong className="text-gray-700">faixa</strong> aparece no topo e no rodapé de todas as
+        páginas e aceita até 3 clientes. Os <strong className="text-gray-700">três espaços de
+        cartão</strong> ficam só na página inicial, depois das notícias. Onde houver mais de um
+        cliente, eles giram em rodízio. Espaço vazio vira um convite "Anuncie aqui".
       </p>
 
       {erro && (
@@ -80,9 +101,11 @@ function BannersAdmin() {
       <div className="cartao p-5 mb-8 flex items-start gap-3">
         <ImageIcon size={20} className="text-brand-primary shrink-0 mt-0.5" />
         <div className="text-sm text-gray-600 leading-relaxed">
-          <strong className="text-gray-900">Tamanho da imagem:</strong> use a proporção de cartão de
-          visita, 9 por 5. O ideal é <strong>900 x 500 pixels</strong> (ou 1080 x 600), em JPG, PNG ou
-          WEBP, até 5 MB. Imagem fora dessa proporção é cortada nas bordas para não quebrar o layout.
+          <strong className="text-gray-900">Tamanho da arte:</strong> a faixa pede{" "}
+          <strong>1200 x 200 pixels</strong> e os cartões pedem <strong>900 x 500</strong>. Mande em
+          JPG, PNG ou WEBP — o arquivo é reduzido sozinho antes de subir, então pode enviar a arte em
+          alta. Imagem fora da proporção é cortada nas bordas para não quebrar o layout, por isso
+          evite deixar texto ou logo colado na beirada.
         </div>
       </div>
 
@@ -110,6 +133,10 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
   const [cliente, setCliente] = useState("");
   const [link, setLink] = useState("");
 
+  const formato = formatoDe(espaco);
+  const teto = espaco.limite ?? 99;
+  const cheio = banners.length >= teto;
+
   async function enviarArquivo(arquivo: File) {
     onErro("");
 
@@ -117,18 +144,32 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
       onErro("Informe o nome do cliente antes de enviar a imagem.");
       return;
     }
-    if (arquivo.size > TAMANHO_MAX) {
-      onErro("A imagem passa de 5 MB. Reduza o arquivo e tente de novo.");
+    if (cheio) {
+      onErro(`Este espaço já está com ${espaco.limite} anunciante(s). Remova um antes de adicionar outro.`);
       return;
     }
 
     setEnviando(true);
-    const ext = arquivo.name.split(".").pop()?.toLowerCase() || "jpg";
-    const caminho = `espaco-${espaco.id}/${Date.now()}.${ext}`;
+
+    // Reduz no navegador para a largura do formato antes de subir
+    let pronta;
+    try {
+      pronta = await prepararImagem(arquivo, formato.largura);
+    } catch (e: any) {
+      setEnviando(false);
+      onErro(e?.message ?? "Não foi possível preparar a imagem.");
+      return;
+    }
+
+    const caminho = `espaco-${espaco.id}/${Date.now()}.${pronta.extensao}`;
 
     const { error: erroUpload } = await supabase.storage
       .from("banners")
-      .upload(caminho, arquivo, { cacheControl: "3600", upsert: false });
+      .upload(caminho, pronta.arquivo, {
+        cacheControl: "31536000",
+        contentType: pronta.tipo,
+        upsert: false,
+      });
 
     if (erroUpload) {
       setEnviando(false);
@@ -155,7 +196,10 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
     setEnviando(false);
 
     if (error) {
-      onErro(`Imagem enviada, mas não foi possível salvar o banner: ${error.message}`);
+      // O banco também cobra o teto de anunciantes, então a imagem pode subir
+      // e o registro ser recusado. Nesse caso o arquivo órfão sai daqui.
+      await supabase.storage.from("banners").remove([caminho]);
+      onErro(`Não foi possível salvar o banner: ${error.message}`);
       return;
     }
 
@@ -181,7 +225,11 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
       <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[color:var(--border)]">
         <div>
           <h2 className="titulo-secao text-lg">{espaco.nome}</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-400 mt-0.5">
+            Aparece {formato.onde} · arte {formato.medida}
+            {teto < 99 && ` · até ${teto} clientes`}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
             {banners.length === 0
               ? "Nenhum banner. O espaço mostra o convite Anuncie aqui."
               : `${banners.length} banner(s), ${ativos} no ar${ativos > 1 ? ", girando em rodízio" : ""}`}
@@ -255,12 +303,22 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
 
             <button
               onClick={() => inputRef.current?.click()}
-              disabled={enviando}
+              disabled={enviando || cheio}
               className="botao-vermelho flex items-center justify-center gap-2 py-3 text-sm disabled:opacity-60"
             >
               <Upload size={16} />
-              {enviando ? "Enviando..." : "Escolher imagem e publicar"}
+              {enviando
+                ? "Enviando..."
+                : cheio
+                  ? `Espaço lotado (${teto} clientes)`
+                  : "Escolher imagem e publicar"}
             </button>
+
+            {cheio && (
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Para entrar um cliente novo, exclua ou tire do ar um dos que já estão aqui.
+              </p>
+            )}
           </div>
         </div>
 
@@ -270,7 +328,7 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
           {banners.length === 0 ? (
             <div
               className="rounded-xl border border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400"
-              style={{ aspectRatio: PROPORCAO_BANNER }}
+              style={{ aspectRatio: formato.proporcao }}
             >
               Espaço livre
             </div>
@@ -281,10 +339,10 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
                   <img
                     src={b.imagem_url}
                     alt={b.cliente}
-                    className={`w-32 rounded-lg object-cover border border-[color:var(--border)] ${
+                    className={`${espaco.formato === "faixa" ? "w-44" : "w-32"} rounded-lg object-cover border border-[color:var(--border)] ${
                       b.ativo ? "" : "opacity-40 grayscale"
                     }`}
-                    style={{ aspectRatio: PROPORCAO_BANNER }}
+                    style={{ aspectRatio: formato.proporcao }}
                   />
 
                   <div className="flex-1 min-w-0">

@@ -186,4 +186,46 @@ body {
     color: #17181B;
     margin: 1.75rem 0;
   }
+
+  /* ---------- Topo de página com foto ---------- */
+
+  .hero-foto-img {
+    object-position: var(--foto-pos-mobile, 70% 30%);
+  }
+
+  /* No celular a foto vira textura: véu forte para o texto mandar */
+  .hero-veu {
+    background:
+      linear-gradient(180deg, rgba(11,11,12,0.94) 0%, rgba(11,11,12,0.86) 55%, rgba(11,11,12,0.80) 100%);
+  }
+
+  @media (min-width: 768px) {
+    .hero-foto-img {
+      object-position: var(--foto-pos, 50% 50%);
+    }
+    /* No desktop o véu abre para a direita e a foto aparece */
+    .hero-veu {
+      background:
+        linear-gradient(90deg, rgba(11,11,12,0.95) 0%, rgba(11,11,12,0.88) 34%, rgba(11,11,12,0.58) 64%, rgba(11,11,12,0.34) 100%),
+        linear-gradient(0deg, rgba(11,11,12,0.42) 0%, rgba(11,11,12,0) 40%);
+    }
+  }
+
+  /* ---------- Faixa de publicidade ----------
+     Mesma proporção da arte enviada, 1200 x 200 (6 por 1), no computador e
+     no celular. Já testei engordar a moldura no celular: ela corta as
+     laterais e come justamente o texto e a logo do anunciante. Melhor a
+     faixa ficar mais baixa e a arte aparecer inteira. */
+
+  .faixa-anuncio {
+    aspect-ratio: 6 / 1;
+  }
+
+  /* O convite "Anuncie aqui" não é anúncio de ninguém: pode ter altura
+     própria e ficar confortável de ler e de tocar. */
+  .faixa-anuncio.faixa-convite {
+    aspect-ratio: auto;
+    min-height: 76px;
+    padding-block: 0.875rem;
+  }
 }

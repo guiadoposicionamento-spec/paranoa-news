@@ -1,9 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { CATEGORIAS, NAV_CATEGORIAS } from "@/lib/categorias";
 import { SITE } from "@/lib/site";
+import { Faixa } from "@/components/Faixa";
 
+// O rodapé entrega a segunda aparição da faixa, depois do conteúdo da página.
 export function Footer() {
   return (
+    <>
+    <Faixa posicao="rodape" />
+
     <footer className="bg-brand-ink text-white mt-20">
       <div className="h-[3px] bg-brand-primary" />
 
@@ -61,5 +66,6 @@ export function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }

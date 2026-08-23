@@ -18,6 +18,7 @@ interface Espaco {
   nome: string;
   intervalo_segundos: number;
   ativo: boolean;
+  formato?: string;
 }
 
 // Proporção de cartão de visita: 9 x 5 cm
@@ -38,14 +39,17 @@ export function Banners() {
     },
   });
 
-  const espacos = data?.espacos ?? [1, 2, 3].map((id) => ({
+  const espacos: Espaco[] = data?.espacos ?? [1, 2, 3].map((id) => ({
     id,
     nome: `Espaço ${id}`,
     intervalo_segundos: 6,
     ativo: true,
+    formato: "cartao",
   }));
 
-  const visiveis = espacos.filter((e) => e.ativo);
+  // Só os espaços de cartão entram nesta grade. A faixa larga tem componente
+  // próprio (Faixa.tsx) e aparece no topo e no rodapé de todas as páginas.
+  const visiveis = espacos.filter((e) => e.ativo && (e.formato ?? "cartao") === "cartao");
   if (visiveis.length === 0) return null;
 
   return (
