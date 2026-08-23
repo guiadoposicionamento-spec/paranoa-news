@@ -27,8 +27,20 @@ export const REGIOES = [
   "Distrito Federal",
 ];
 
-/** Frase de cobertura usada em títulos e descrições. */
+/**
+ * Frase de cobertura usada nas descrições que o Google lê.
+ * Aqui vale citar cada região pelo nome — é assim que o buscador associa
+ * o portal a cada bairro.
+ */
 export const COBERTURA = "Paranoá, Itapoã, Paranoá Parque e Itapoã Parque";
+
+/**
+ * Título da página inicial, o que o leitor vê.
+ * Curto de propósito: a lista completa das regiões já passa na faixa
+ * vermelha logo acima, e repetir tudo aqui só empurrava as notícias
+ * para baixo no celular.
+ */
+export const TITULO_HOME = "Notícias do Paranoá, Itapoã e Região!";
 
 export function formatarData(valor?: string | null) {
   if (!valor) return "";

@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { NoticiaCard, NoticiaDestaque, NoticiaLinha, type Noticia } from "@/components/NoticiaCard";
 import { Banners } from "@/components/Banners";
 import { supabase } from "@/integrations/supabase/client";
-import { formatarDataCurta, COBERTURA } from "@/lib/site";
+import { formatarDataCurta, TITULO_HOME } from "@/lib/site";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -48,13 +48,13 @@ function HomePage() {
 
       <main className="flex-1 container-portal py-8 md:py-10">
         {/* Título principal da página inicial.
-            Toda página precisa de um H1, e o do portal é o lugar de dizer ao
-            Google — e ao leitor que chega de fora — quais regiões este jornal
-            cobre. Sem isso o buscador não tem como ligar o site ao Itapoã nem
-            ao Paranoá Parque. */}
+            O texto curto é o que o leitor vê. A lista completa das regiões
+            continua sendo dita ao Google — na faixa vermelha do topo e nas
+            etiquetas montadas pela função de borda (netlify/edge-functions),
+            que é de onde o buscador tira o título do resultado. */}
         <header className="mb-8 md:mb-10">
           <h1 className="titulo-secao text-xl md:text-2xl text-gray-900">
-            Notícias do {COBERTURA}
+            {TITULO_HOME}
           </h1>
           <p className="text-sm md:text-[15px] text-gray-500 mt-1.5 max-w-2xl leading-relaxed">
             O que acontece na sua região todos os dias: reportagens, denúncias da população,
