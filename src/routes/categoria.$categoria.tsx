@@ -35,7 +35,13 @@ function CategoriaPage() {
           <span className="tarja" style={{ backgroundColor: corCategoria(categoria) }}>
             Editoria
           </span>
-          <h1 className="titulo-secao text-3xl md:text-4xl mt-3">{cat?.nome ?? categoria}</h1>
+          {/* O nome da editoria sozinho ("Segurança") não diz ao Google de
+              onde é a notícia. Com a região no H1, a página passa a competir
+              por "segurança no Paranoá", "cultura no Itapoã" e afins. */}
+          <h1 className="titulo-secao text-3xl md:text-4xl mt-3">
+            {cat?.nome ?? categoria}{" "}
+            <span className="text-gray-400 font-bold">no Paranoá e Itapoã</span>
+          </h1>
           <p className="text-sm text-gray-500 mt-2">
             {isLoading ? "Carregando publicações" : `${noticias.length} publicação(ões) nesta editoria`}
           </p>
