@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Megaphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Banner } from "@/components/Banners";
+import { linkSeguro } from "@/lib/link";
 
 // Faixa larga, no formato dos portais de notícia: 1200 x 200 px.
 // Aparece no topo e no rodapé de todas as páginas públicas.
@@ -95,6 +96,8 @@ export function Faixa({ posicao }: { posicao: "topo" | "rodape" }) {
 }
 
 function FaixaImagem({ banner, visivel }: { banner: Banner; visivel: boolean }) {
+  const destino = linkSeguro(banner.link);
+
   const conteudo = (
     <img
       src={banner.imagem_url}
@@ -111,11 +114,12 @@ function FaixaImagem({ banner, visivel }: { banner: Banner; visivel: boolean }) 
       }`}
       aria-hidden={!visivel}
     >
-      {banner.link ? (
+      {destino ? (
         <a
-          href={banner.link}
+          href={destino}
           target="_blank"
           rel="noreferrer noopener sponsored"
+          aria-label={`Anúncio de ${banner.cliente} — abre em nova aba`}
           className="block w-full h-full"
         >
           {conteudo}

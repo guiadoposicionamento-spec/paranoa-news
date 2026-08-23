@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon } from "lucide-react";
+import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon, Link as LinkIcon, ExternalLink, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PROPORCAO_BANNER, PROPORCAO_RETRATO } from "@/components/Banners";
 import { PROPORCAO_FAIXA } from "@/components/Faixa";
 import { prepararImagem } from "@/lib/imagem";
+import { normalizarLink, linkLegivel } from "@/lib/link";
 
 export const Route = createFileRoute("/_authenticated/admin/banners")({ component: BannersAdmin });
 
@@ -201,7 +202,7 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
       cliente: cliente.trim(),
       imagem_url: pub.publicUrl,
       imagem_path: caminho,
-      link: link.trim() || null,
+      link: normalizarLink(link),
       ordem: proximaOrdem,
       ativo: true,
     }]);
@@ -298,9 +299,14 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
               <input
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
-                placeholder="https://wa.me/5561999999999"
+                placeholder="site, Instagram ou WhatsApp do cliente"
                 className="campo"
               />
+              <span className="text-[11px] text-gray-400 leading-relaxed">
+                Pode escrever do jeito simples: <strong>padaria.com.br</strong>,{" "}
+                <strong>instagram.com/padaria</strong> ou só o número do WhatsApp. O anúncio
+                sempre abre numa aba nova.
+              </span>
             </label>
 
             <input
@@ -360,16 +366,7 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
 
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-gray-900 truncate">{b.cliente}</p>
-                    {b.link && (
-                      <a
-                        href={b.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-brand-primary truncate block"
-                      >
-                        {b.link}
-                      </a>
-                    )}
+                    <CampoLink banner={b} salvarBanner={salvarBanner} />
                     <p className="text-[11px] text-gray-400 mt-0.5">Posição {i + 1}</p>
                   </div>
 
@@ -407,6 +404,55 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Link de destino do banner, editável direto na lista.
+ *
+ * Antes o link só podia ser definido no cadastro. Se o cliente mandasse o
+ * endereço depois — ou trocasse de site — era preciso excluir o banner e
+ * subir a arte de novo.
+ */
+function CampoLink({ banner, salvarBanner }: any) {
+  const [valor, setValor] = useState(banner.link ?? "");
+  const [salvo, setSalvo] = useState(false);
+
+  function guardar() {
+    const pronto = normalizarLink(valor);
+    if (pronto === (banner.link ?? null)) return;
+    salvarBanner.mutate({ id: banner.id, campos: { link: pronto } });
+    setValor(pronto ?? "");
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2000);
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 mt-1">
+      <LinkIcon size={12} className="text-gray-400 shrink-0" />
+      <input
+        value={valor}
+        onChange={(e) => setValor(e.target.value)}
+        onBlur={guardar}
+        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+        placeholder="sem link — clique aqui para adicionar"
+        aria-label={`Link de destino do banner de ${banner.cliente}`}
+        className="w-full min-w-0 text-xs bg-transparent border-b border-dashed border-gray-300 focus:border-brand-primary outline-none py-0.5 text-gray-600 placeholder:text-gray-300"
+      />
+      {salvo ? (
+        <Check size={13} className="text-green-600 shrink-0" />
+      ) : banner.link ? (
+        <a
+          href={banner.link}
+          target="_blank"
+          rel="noreferrer noopener"
+          title={`Abrir ${linkLegivel(banner.link)}`}
+          className="text-gray-400 hover:text-brand-primary shrink-0"
+        >
+          <ExternalLink size={13} />
+        </a>
+      ) : null}
+    </div>
   );
 }
 

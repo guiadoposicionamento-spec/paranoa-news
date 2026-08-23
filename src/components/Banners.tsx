@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { linkSeguro } from "@/lib/link";
 
 export interface Banner {
   id: number;
@@ -136,6 +137,10 @@ function EspacoBanner({
 }
 
 function BannerImagem({ banner, visivel }: { banner: Banner; visivel: boolean }) {
+  // Rede de segurança: mesmo que um link antigo tenha sido salvo sem
+  // "https://", ele sai daqui como endereço completo.
+  const destino = linkSeguro(banner.link);
+
   const conteudo = (
     <img
       src={banner.imagem_url}
@@ -152,8 +157,14 @@ function BannerImagem({ banner, visivel }: { banner: Banner; visivel: boolean })
       }`}
       aria-hidden={!visivel}
     >
-      {banner.link ? (
-        <a href={banner.link} target="_blank" rel="noreferrer noopener sponsored" className="block w-full h-full">
+      {destino ? (
+        <a
+          href={destino}
+          target="_blank"
+          rel="noreferrer noopener sponsored"
+          aria-label={`Anúncio de ${banner.cliente} — abre em nova aba`}
+          className="block w-full h-full"
+        >
           {conteudo}
         </a>
       ) : (
