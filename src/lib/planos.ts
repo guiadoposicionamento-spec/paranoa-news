@@ -1,4 +1,4 @@
-// Planos de anúncio de vagas vendidos pela Kiwify.
+﻿// Planos de anúncio de vagas vendidos pela Kiwify.
 // Troque cada `checkout` pela URL do produto correspondente no painel da Kiwify.
 
 export interface Plano {
@@ -17,14 +17,14 @@ export const PLANOS: Plano[] = [
     nome: "Mensal",
     preco: 67,
     meses: 1,
-    checkout: "https://pay.kiwify.com.br/SEU-CODIGO-MENSAL",
+    checkout: "https://pay.kiwify.com.br/TrocM9n",
   },
   {
     id: "trimestral",
     nome: "Trimestral",
     preco: 97,
     meses: 3,
-    checkout: "https://pay.kiwify.com.br/SEU-CODIGO-TRIMESTRAL",
+    checkout: "https://pay.kiwify.com.br/Lv3zivo",
     destaque: true,
     selo: "Mais escolhido",
   },
@@ -33,7 +33,7 @@ export const PLANOS: Plano[] = [
     nome: "Semestral",
     preco: 177,
     meses: 6,
-    checkout: "https://pay.kiwify.com.br/SEU-CODIGO-SEMESTRAL",
+    checkout: "https://pay.kiwify.com.br/fsIe2rK",
     selo: "Melhor custo por mês",
   },
 ];
