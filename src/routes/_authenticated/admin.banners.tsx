@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon, Link as LinkIcon, ExternalLink, Check } from "lucide-react";
+import { Upload, Trash2, ArrowUp, ArrowDown, Eye, EyeOff, ImageIcon, Link as LinkIcon, ExternalLink, Check, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PROPORCAO_BANNER, PROPORCAO_RETRATO } from "@/components/Banners";
 import { PROPORCAO_FAIXA } from "@/components/Faixa";
@@ -27,7 +27,7 @@ const FORMATOS: Record<string, { proporcao: string; largura: number; medida: str
   faixa: {
     proporcao: PROPORCAO_FAIXA,
     largura: 1600,
-    medida: "1200 x 200 pixels (faixa larga, 6 por 1)",
+    medida: "1200 x 200 no computador, 600 x 200 no celular",
     onde: "no topo e no rodapé de todas as páginas do site",
   },
 };
@@ -75,7 +75,8 @@ function BannersAdmin() {
 
   const excluir = useMutation({
     mutationFn: async (b: any) => {
-      if (b.imagem_path) await supabase.storage.from("banners").remove([b.imagem_path]);
+      const arquivos = [b.imagem_path, b.imagem_path_mobile].filter(Boolean);
+      if (arquivos.length) await supabase.storage.from("banners").remove(arquivos);
       const { error } = await supabase.from("banners").delete().eq("id", b.id);
       if (error) throw error;
     },
@@ -116,7 +117,7 @@ function BannersAdmin() {
         <div className="text-sm text-gray-600 leading-relaxed">
           <strong className="text-gray-900">Tamanho da arte:</strong> os quatro espaços da home
           pedem <strong>1080 x 1350 pixels</strong> — a mesma arte do post de Instagram. A faixa
-          pede <strong>1200 x 200</strong>. Mande em
+          pede <strong>1200 x 200</strong> no computador e <strong>600 x 200</strong> no celular. Mande em
           JPG, PNG ou WEBP — o arquivo é reduzido sozinho antes de subir, então pode enviar a arte em
           alta. Imagem fora da proporção é cortada nas bordas para não quebrar o layout, por isso
           evite deixar texto ou logo colado na beirada.
@@ -367,7 +368,11 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-gray-900 truncate">{b.cliente}</p>
                     <CampoLink banner={b} salvarBanner={salvarBanner} />
-                    <p className="text-[11px] text-gray-400 mt-0.5">Posição {i + 1}</p>
+                    {espaco.formato === "faixa" ? (
+                      <ArteDeCelular banner={b} onErro={onErro} onMudou={onMudou} />
+                    ) : (
+                      <p className="text-[11px] text-gray-400 mt-0.5">Posição {i + 1}</p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
@@ -414,6 +419,126 @@ function EspacoBloco({ espaco, banners, onErro, onMudou, salvarEspaco, salvarBan
  * endereço depois — ou trocasse de site — era preciso excluir o banner e
  * subir a arte de novo.
  */
+/**
+ * Arte separada para o celular, só na faixa.
+ *
+ * A faixa do computador é 1200x200. Numa tela de celular isso vira um risco
+ * de 58 pixels de altura. Com uma arte de 600x200 o anunciante ganha o dobro
+ * de altura. Quem não mandar a arte de celular não fica sem nada: o site usa
+ * a arte larga e mostra o pedaço do meio.
+ */
+function ArteDeCelular({ banner, onErro, onMudou }: any) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [enviando, setEnviando] = useState(false);
+
+  async function enviar(arquivo: File) {
+    onErro("");
+    setEnviando(true);
+    try {
+      const pronta = await prepararImagem(arquivo, 1200);
+      const caminho = `espaco-${banner.espaco}/mobile-${Date.now()}.${pronta.extensao}`;
+
+      const { error: erroUpload } = await supabase.storage
+        .from("banners")
+        .upload(caminho, pronta.arquivo, {
+          cacheControl: "31536000",
+          contentType: pronta.tipo,
+          upsert: false,
+        });
+      if (erroUpload) throw new Error(erroUpload.message);
+
+      const { data: pub } = supabase.storage.from("banners").getPublicUrl(caminho);
+
+      const { error } = await supabase
+        .from("banners")
+        .update({ imagem_url_mobile: pub.publicUrl, imagem_path_mobile: caminho })
+        .eq("id", banner.id);
+      if (error) {
+        await supabase.storage.from("banners").remove([caminho]);
+        throw new Error(error.message);
+      }
+
+      // A arte antiga sai só depois que a nova entrou
+      if (banner.imagem_path_mobile) {
+        await supabase.storage.from("banners").remove([banner.imagem_path_mobile]);
+      }
+      onMudou();
+    } catch (e: any) {
+      onErro(e?.message ?? "Não foi possível enviar a arte de celular.");
+    } finally {
+      setEnviando(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  async function remover() {
+    onErro("");
+    const { error } = await supabase
+      .from("banners")
+      .update({ imagem_url_mobile: null, imagem_path_mobile: null })
+      .eq("id", banner.id);
+    if (error) { onErro(error.message); return; }
+    if (banner.imagem_path_mobile) {
+      await supabase.storage.from("banners").remove([banner.imagem_path_mobile]);
+    }
+    onMudou();
+  }
+
+  const tem = !!banner.imagem_url_mobile;
+
+  return (
+    <div className="flex items-center gap-2 mt-1.5">
+      {tem ? (
+        <img
+          src={banner.imagem_url_mobile}
+          alt="Arte de celular"
+          className="w-16 rounded border border-[color:var(--border)] object-cover shrink-0"
+          style={{ aspectRatio: "3 / 1" }}
+        />
+      ) : (
+        <span
+          className="w-16 rounded border border-dashed border-gray-300 shrink-0 flex items-center justify-center text-gray-300"
+          style={{ aspectRatio: "3 / 1" }}
+        >
+          <Smartphone size={13} />
+        </span>
+      )}
+
+      <div className="min-w-0">
+        <p className="text-[11px] text-gray-500 leading-tight">
+          {tem ? "Arte própria de celular" : "Celular usa a arte larga, cortada no centro"}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) enviar(f); }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={enviando}
+            className="text-[11px] font-bold text-brand-primary hover:underline disabled:opacity-50"
+          >
+            {enviando ? "enviando..." : tem ? "trocar (600 x 200)" : "enviar arte 600 x 200"}
+          </button>
+          {tem && (
+            <button
+              type="button"
+              onClick={remover}
+              className="text-[11px] font-bold text-gray-400 hover:text-red-600"
+            >
+              remover
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CampoLink({ banner, salvarBanner }: any) {
   const [valor, setValor] = useState(banner.link ?? "");
   const [salvo, setSalvo] = useState(false);

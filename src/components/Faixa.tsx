@@ -98,13 +98,25 @@ export function Faixa({ posicao }: { posicao: "topo" | "rodape" }) {
 function FaixaImagem({ banner, visivel }: { banner: Banner; visivel: boolean }) {
   const destino = linkSeguro(banner.link);
 
+  // Duas artes, uma moldura.
+  //
+  // O <source> só entra em telas estreitas, e só existe quando o anunciante
+  // mandou a arte de 600x200. Sem ela, o navegador cai no <img> de sempre —
+  // que é a arte do computador. Como a moldura no celular é mais alta (3x1)
+  // e a imagem usa object-cover centralizado, o resultado é o recorte do
+  // meio da arte larga, sem esticar nada.
   const conteudo = (
-    <img
-      src={banner.imagem_url}
-      alt={`Anúncio de ${banner.cliente}`}
-      loading="lazy"
-      className="absolute inset-0 w-full h-full object-cover"
-    />
+    <picture>
+      {banner.imagem_url_mobile && (
+        <source media="(max-width: 639px)" srcSet={banner.imagem_url_mobile} />
+      )}
+      <img
+        src={banner.imagem_url}
+        alt={`Anúncio de ${banner.cliente}`}
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover object-center"
+      />
+    </picture>
   );
 
   return (

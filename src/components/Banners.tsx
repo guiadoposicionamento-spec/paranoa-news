@@ -10,6 +10,8 @@ export interface Banner {
   espaco: number;
   cliente: string;
   imagem_url: string;
+  /** Arte própria para telas estreitas. Nulo = usa a do computador. */
+  imagem_url_mobile?: string | null;
   link?: string | null;
   ordem: number;
 }

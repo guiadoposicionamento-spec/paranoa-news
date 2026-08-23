@@ -558,3 +558,19 @@ on conflict (id) do update set
   nome    = excluded.nome,
   formato = excluded.formato,
   ativo   = excluded.ativo;
+
+
+-- =====================================================================
+-- 15. ARTE DE CELULAR PARA A FAIXA
+--     A faixa e 1200x200 no computador. No celular a mesma arte ficaria
+--     com 58 pixels de altura. Com uma arte de 600x200 o anunciante ganha
+--     o dobro. Sem ela, o site corta a arte larga pelo centro.
+-- =====================================================================
+
+alter table public.banners add column if not exists imagem_url_mobile  text;
+alter table public.banners add column if not exists imagem_path_mobile text;
+
+comment on column public.banners.imagem_url_mobile is
+  'Arte 600x200 exibida em telas estreitas. Nulo = usa a do computador, cortada no centro.';
+comment on column public.banners.imagem_path_mobile is
+  'Caminho do arquivo da arte de celular no bucket banners, para poder apagar na troca.';
