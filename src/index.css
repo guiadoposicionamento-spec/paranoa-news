@@ -211,6 +211,71 @@ body {
     }
   }
 
+  /* ---------- Faixa de cidades ----------
+     Tira vermelha entre o logo e as editorias, com os nomes das regiões
+     passando sem parar. Ver FaixaCidades.tsx para o porquê da lista dupla. */
+
+  .faixa-cidades {
+    background: var(--brand-red);
+    overflow: hidden;
+    /* Corta o clique acidental e o arrasto: é decoração, não navegação */
+    user-select: none;
+  }
+
+  .faixa-cidades-tira {
+    display: flex;
+    width: max-content;
+    animation: correr-cidades 45s linear infinite;
+  }
+
+  /* Passar o mouse segura a tira, para dar tempo de ler um nome */
+  .faixa-cidades:hover .faixa-cidades-tira {
+    animation-play-state: paused;
+  }
+
+  .faixa-cidades-lista {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .faixa-cidades-lista li {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: 0.4rem 0;
+    line-height: 1.4;
+  }
+
+  .faixa-cidades-ponto {
+    color: rgba(255, 255, 255, 0.55);
+    padding: 0 0.75rem;
+    font-weight: 700;
+  }
+
+  @media (min-width: 768px) {
+    .faixa-cidades-lista li {
+      font-size: 0.75rem;
+      padding: 0.45rem 0;
+    }
+    .faixa-cidades-ponto { padding: 0 1rem; }
+  }
+
+  /* Quem pede menos animação no sistema recebe a faixa parada, e pode
+     arrastar de lado para ler o resto. */
+  @media (prefers-reduced-motion: reduce) {
+    .faixa-cidades { overflow-x: auto; }
+    .faixa-cidades-tira { animation: none; }
+    .faixa-cidades-tira > :last-child { display: none; }
+  }
+
   /* ---------- Botões de ação do topo ----------
      Cada serviço tem sua cor, para o leitor achar de longe: denúncia em
      vermelho, vaga em azul, anúncio em verde. Os tons vêm da mesma paleta
@@ -292,4 +357,11 @@ body {
     min-height: 76px;
     padding-block: 0.875rem;
   }
+}
+
+/* Fora de @layer de propósito: keyframes não participam da cascata em
+   camadas, e dentro do layer o Tailwind pode reordenar a regra. */
+@keyframes correr-cidades {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }

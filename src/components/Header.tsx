@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CATEGORIAS, NAV_CATEGORIAS } from "@/lib/categorias";
 import { SITE } from "@/lib/site";
 import { Faixa } from "@/components/Faixa";
+import { FaixaCidades } from "@/components/FaixaCidades";
 
 /**
  * O cabeçalho também entrega a faixa de publicidade do topo. Como todas as
@@ -55,6 +56,9 @@ export function Header() {
           <div className="w-8 md:hidden" />
         </div>
       </div>
+
+      {/* Entre o logo e as editorias, no computador e no celular */}
+      <FaixaCidades />
 
       <div className="hidden md:block border-t border-white/10">
         <div className="container-portal">
