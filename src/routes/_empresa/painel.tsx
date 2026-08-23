@@ -36,13 +36,24 @@ function PainelEmpresa() {
     },
   });
 
-  const { data: vagas = [] } = useQuery({
-    queryKey: ["empresa", "vagas"],
+  // Só as vagas desta empresa.
+  //
+  // O banco tem duas regras de leitura que valem ao mesmo tempo: a empresa lê
+  // as vagas dela, e QUALQUER pessoa lê as vagas abertas do portal — é assim
+  // que a página pública funciona. Como as duas somam, uma consulta sem filtro
+  // trazia também as vagas das outras empresas para dentro do painel.
+  // O filtro por user_id resolve, e a consulta só roda depois que sabemos
+  // quem está logado, para nunca listar nada de outra pessoa por engano.
+  const { data: vagas = [], isLoading: buscandoVagas } = useQuery({
+    queryKey: ["empresa", "vagas", perfil?.id],
+    enabled: !!perfil?.id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("vagas")
         .select("*")
+        .eq("user_id", perfil!.id)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return data ?? [];
     },
   });
@@ -51,6 +62,7 @@ function PainelEmpresa() {
     if (perfil?.nome && !form.empresa) setForm((f) => ({ ...f, empresa: perfil.nome }));
   }, [perfil?.nome]);
 
+  const carregandoVagas = !perfil?.id || buscandoVagas;
   const abertas = (vagas as any[]).filter((v) => v.status === "aberta").length;
   const info = infoStatus(assinatura?.status);
   const vencida = assinatura?.expira_em ? new Date(assinatura.expira_em) < new Date() : false;
@@ -233,11 +245,17 @@ function PainelEmpresa() {
               </tr>
             </thead>
             <tbody>
-              {vagas.length === 0 && (
+              {/* Sem isso, enquanto o perfil carrega a tabela pisca dizendo
+                  que a empresa não tem vaga nenhuma. */}
+              {carregandoVagas ? (
+                <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">
+                  Carregando suas vagas...
+                </td></tr>
+              ) : vagas.length === 0 ? (
                 <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">
                   Você ainda não publicou nenhuma vaga.
                 </td></tr>
-              )}
+              ) : null}
               {(vagas as any[]).map((v) => (
                 <tr key={v.id} className="border-t border-gray-100">
                   <td className="px-4 py-3 font-medium text-gray-900">{v.cargo}</td>
