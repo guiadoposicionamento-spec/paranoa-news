@@ -79,12 +79,18 @@ export function NoticiaFormFields({ valores, onChange, onSubmit, salvando, erro,
         />
       </Campo>
 
-      <Campo label="Conteúdo">
+      {/* Fora de <label> de propósito.
+          Um <label> repassa o clique para o primeiro campo clicável dentro
+          dele — e aqui isso seria o botão de negrito da barra. O clique na
+          área de escrita ia parar no botão, o cursor não aparecia e não dava
+          para digitar. */}
+      <div className="flex flex-col gap-1">
+        <span className="rotulo">Conteúdo</span>
         <EditorTexto
           valor={valores.conteudo}
           onChange={(html) => set({ conteudo: html })}
         />
-      </Campo>
+      </div>
 
       <ImagemUpload
         url={valores.foto_capa}

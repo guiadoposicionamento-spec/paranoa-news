@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { NoticiaFormFields, formVazio, type NoticiaForm } from "@/components/NoticiaForm";
+import { limparCacheDeNoticias } from "@/lib/cacheNoticias";
 
 export const Route = createFileRoute("/_authenticated/admin/noticias/$id/editar")({ component: EditarNoticia });
 
 function EditarNoticia() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [form, setForm] = useState<NoticiaForm>(formVazio());
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
@@ -63,6 +65,8 @@ function EditarNoticia() {
       );
       return;
     }
+
+    limparCacheDeNoticias(qc, id);
     navigate({ to: "/admin/noticias" });
   }
 
