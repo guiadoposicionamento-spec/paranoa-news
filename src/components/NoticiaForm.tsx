@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CATEGORIAS } from "@/lib/categorias";
 import { gerarSlug } from "@/lib/site";
+import { ImagemUpload } from "@/components/ImagemUpload";
 
 export interface NoticiaForm {
   titulo: string;
@@ -11,6 +12,7 @@ export interface NoticiaForm {
   autor: string;
   status: string;
   foto_capa: string;
+  foto_capa_path: string | null;
   data_publicacao: string;
 }
 
@@ -24,6 +26,7 @@ export function formVazio(): NoticiaForm {
     autor: "Redação",
     status: "rascunho",
     foto_capa: "",
+    foto_capa_path: null,
     data_publicacao: new Date().toISOString().slice(0, 16),
   };
 }
@@ -81,18 +84,14 @@ export function NoticiaFormFields({ valores, onChange, onSubmit, salvando, erro,
         />
       </Campo>
 
-      <Campo label="URL da foto de capa">
-        <input
-          value={valores.foto_capa}
-          onChange={(e) => set({ foto_capa: e.target.value })}
-          placeholder="https://..."
-          className="campo"
-        />
-      </Campo>
-
-      {valores.foto_capa && (
-        <img src={valores.foto_capa} alt="Prévia da capa" className="w-full max-h-56 object-cover rounded-lg" />
-      )}
+      <ImagemUpload
+        url={valores.foto_capa}
+        path={valores.foto_capa_path}
+        bucket="noticias"
+        pasta="capas"
+        proporcao="16 / 9"
+        onChange={({ url, path }) => set({ foto_capa: url, foto_capa_path: path })}
+      />
 
       <div className="grid sm:grid-cols-2 gap-4">
         <Campo label="Categoria">

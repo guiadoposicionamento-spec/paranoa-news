@@ -426,3 +426,41 @@ create policy "Redacao atualiza banner" on storage.objects
 drop policy if exists "Redacao apaga banner" on storage.objects;
 create policy "Redacao apaga banner" on storage.objects
   for delete to authenticated using (bucket_id = 'banners' and public.eh_redacao());
+
+
+-- =====================================================================
+-- 11. IMAGENS DE CAPA DAS MATÉRIAS
+--     A redação envia a foto pelo painel; ela é reduzida no navegador
+--     antes de subir (src/lib/imagem.ts) e guardada neste bucket.
+-- =====================================================================
+
+alter table public.noticias add column if not exists foto_capa_path text;
+comment on column public.noticias.foto_capa_path is
+  'Caminho do arquivo no bucket noticias. Nulo quando a capa veio de uma URL externa.';
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('noticias', 'noticias', true, 10485760,
+        array['image/jpeg','image/png','image/webp','image/gif','image/avif'])
+on conflict (id) do update set
+  public            = excluded.public,
+  file_size_limit   = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Imagens de materia sao publicas" on storage.objects;
+create policy "Imagens de materia sao publicas" on storage.objects
+  for select using (bucket_id = 'noticias');
+
+drop policy if exists "Redacao envia imagem de materia" on storage.objects;
+create policy "Redacao envia imagem de materia" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'noticias' and public.eh_redacao());
+
+drop policy if exists "Redacao atualiza imagem de materia" on storage.objects;
+create policy "Redacao atualiza imagem de materia" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'noticias' and public.eh_redacao());
+
+drop policy if exists "Redacao apaga imagem de materia" on storage.objects;
+create policy "Redacao apaga imagem de materia" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'noticias' and public.eh_redacao());

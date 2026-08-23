@@ -116,8 +116,14 @@ function NoticiaPage() {
         </p>
 
         {noticia.foto_capa && (
-          <figure className="mb-8">
-            <img src={noticia.foto_capa} alt={noticia.titulo} className="w-full rounded-xl object-cover" />
+          <figure className="mb-8 rounded-xl overflow-hidden bg-gray-100">
+            {/* Moldura fixa em 16/9: foto em pé ou deitada ocupa o mesmo espaço
+                e nunca empurra o texto da matéria para fora da tela. */}
+            <img
+              src={noticia.foto_capa}
+              alt={noticia.titulo}
+              className="w-full object-cover block aspect-[16/9]"
+            />
           </figure>
         )}
 

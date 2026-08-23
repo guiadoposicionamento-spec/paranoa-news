@@ -34,6 +34,7 @@ function EditarNoticia() {
       autor: data.autor ?? "Redação",
       status: data.status ?? "rascunho",
       foto_capa: data.foto_capa ?? "",
+      foto_capa_path: data.foto_capa_path ?? null,
       data_publicacao: data.data_publicacao
         ? new Date(data.data_publicacao).toISOString().slice(0, 16)
         : new Date().toISOString().slice(0, 16),
