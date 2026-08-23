@@ -41,22 +41,13 @@ export function Header() {
           </Link>
 
           <div className="hidden md:flex items-center gap-2">
-            <Link
-              to="/denuncie"
-              className="flex items-center gap-1.5 text-white/80 hover:text-white px-3 py-2 text-xs font-bold uppercase tracking-wide transition"
-            >
+            <Link to="/denuncie" className="botao-topo botao-topo-vermelho">
               <Megaphone size={15} /> Denuncie
             </Link>
-            <Link
-              to="/vagas"
-              className="flex items-center gap-1.5 text-white/80 hover:text-white px-3 py-2 text-xs font-bold uppercase tracking-wide transition"
-            >
+            <Link to="/vagas" className="botao-topo botao-topo-azul">
               <Briefcase size={15} /> Vagas
             </Link>
-            <Link
-              to="/anuncie"
-              className="botao-vermelho flex items-center gap-1.5 px-4 py-2.5 text-xs uppercase tracking-wide"
-            >
+            <Link to="/anuncie" className="botao-topo botao-topo-verde">
               <Store size={15} /> Anuncie
             </Link>
           </div>
@@ -104,29 +95,28 @@ export function Header() {
               </Link>
             ))}
 
+            {/* No celular as mesmas três cores, uma embaixo da outra */}
             <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-white/10">
-              <div className="flex gap-2">
-                <Link
-                  to="/denuncie"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center border border-white/20 text-white py-2.5 rounded-lg text-xs font-bold uppercase"
-                >
-                  Denuncie
-                </Link>
-                <Link
-                  to="/vagas"
-                  onClick={() => setOpen(false)}
-                  className="flex-1 text-center border border-white/20 text-white py-2.5 rounded-lg text-xs font-bold uppercase"
-                >
-                  Vagas
-                </Link>
-              </div>
+              <Link
+                to="/denuncie"
+                onClick={() => setOpen(false)}
+                className="botao-topo botao-topo-vermelho w-full py-3"
+              >
+                <Megaphone size={15} /> Denuncie
+              </Link>
+              <Link
+                to="/vagas"
+                onClick={() => setOpen(false)}
+                className="botao-topo botao-topo-azul w-full py-3"
+              >
+                <Briefcase size={15} /> Vagas
+              </Link>
               <Link
                 to="/anuncie"
                 onClick={() => setOpen(false)}
-                className="botao-vermelho text-center py-2.5 text-xs uppercase"
+                className="botao-topo botao-topo-verde w-full py-3"
               >
-                Anuncie sua vaga
+                <Store size={15} /> Anuncie
               </Link>
             </div>
           </nav>

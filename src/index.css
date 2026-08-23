@@ -211,6 +211,40 @@ body {
     }
   }
 
+  /* ---------- Botões de ação do topo ----------
+     Cada serviço tem sua cor, para o leitor achar de longe: denúncia em
+     vermelho, vaga em azul, anúncio em verde. Os tons vêm da mesma paleta
+     das editorias, e todos foram escolhidos com contraste suficiente para
+     o texto branco por cima. */
+
+  .botao-topo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 0.95rem;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+    white-space: nowrap;
+    transition: filter 0.15s, transform 0.15s;
+  }
+  .botao-topo:hover { filter: brightness(1.13); transform: translateY(-1px); }
+
+  .botao-topo-vermelho { background: var(--brand-red); }
+  .botao-topo-azul     { background: #2563EB; }
+
+  /* O verde-limão é o mais claro dos três de propósito: é o botão que vende.
+     Num fundo preto ele salta. Aqui o texto vira escuro — branco sobre limão
+     seria ilegível. */
+  .botao-topo-verde {
+    background: #A3E635;
+    color: #12200A;
+  }
+
   /* ---------- Compartilhar ---------- */
 
   .botao-compartilhar {
