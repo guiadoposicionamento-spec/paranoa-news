@@ -310,6 +310,58 @@ body {
     color: #12200A;
   }
 
+  /* ---------- Menu do botão Vagas ---------- */
+
+  .menu-vagas {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 60;
+    /* Encosta no botão: um vão aqui faria o menu fechar no meio do caminho
+       do mouse. A margem visual vem do padding, não de um espaço morto. */
+    padding-top: 0.5rem;
+    min-width: 15rem;
+  }
+
+  .menu-vagas > * {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    background: var(--brand-ink-2);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    transition: background 0.15s;
+  }
+
+  .menu-vagas > *:first-child {
+    border-radius: 10px 10px 0 0;
+    border: 1px solid var(--brand-line);
+    border-bottom: 0;
+  }
+  .menu-vagas > *:last-child {
+    border-radius: 0 0 10px 10px;
+    border: 1px solid var(--brand-line);
+  }
+
+  .menu-vagas-item small {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .menu-vagas-item:hover { background: #23252A; }
+
+  /* A opção que vende mantém o verde-limão da versão anterior */
+  .menu-vagas-item-destaque { color: #C7F16B; }
+  .menu-vagas-item-destaque:hover { background: #232A16; }
+  .menu-vagas-item-destaque small { color: rgba(199, 241, 107, 0.6); }
+
   /* ---------- Compartilhar ---------- */
 
   .botao-compartilhar {

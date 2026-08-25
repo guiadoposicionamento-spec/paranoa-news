@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X, Megaphone, Briefcase, Store } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, Megaphone, Briefcase, Store, ChevronDown, Search } from "lucide-react";
+import { useRef, useState } from "react";
 import { CATEGORIAS, NAV_CATEGORIAS } from "@/lib/categorias";
 import { SITE } from "@/lib/site";
 import { Faixa } from "@/components/Faixa";
@@ -45,12 +45,7 @@ export function Header() {
             <Link to="/denuncie" className="botao-topo botao-topo-vermelho">
               <Megaphone size={15} /> Denuncie
             </Link>
-            <Link to="/vagas" className="botao-topo botao-topo-azul">
-              <Briefcase size={15} /> Vagas
-            </Link>
-            <Link to="/anuncie" className="botao-topo botao-topo-verde">
-              <Store size={15} /> Anuncie
-            </Link>
+            <MenuVagas />
           </div>
 
           <div className="w-8 md:hidden" />
@@ -99,7 +94,8 @@ export function Header() {
               </Link>
             ))}
 
-            {/* No celular as mesmas três cores, uma embaixo da outra */}
+            {/* No celular não existe passar o mouse, então as duas opções de
+                vaga aparecem abertas, sem menu. */}
             <div className="flex flex-col gap-2 pt-4 mt-2 border-t border-white/10">
               <Link
                 to="/denuncie"
@@ -113,14 +109,14 @@ export function Header() {
                 onClick={() => setOpen(false)}
                 className="botao-topo botao-topo-azul w-full py-3"
               >
-                <Briefcase size={15} /> Vagas
+                <Search size={15} /> Ver vagas
               </Link>
               <Link
                 to="/anuncie"
                 onClick={() => setOpen(false)}
                 className="botao-topo botao-topo-verde w-full py-3"
               >
-                <Store size={15} /> Anuncie
+                <Store size={15} /> Anuncie sua vaga
               </Link>
             </div>
           </nav>
@@ -130,5 +126,73 @@ export function Header() {
 
     <Faixa posicao="topo" />
     </>
+  );
+}
+
+/**
+ * Botão Vagas com menu de duas opções.
+ *
+ * As duas ações de vaga viviam em botões separados no topo, e ninguém
+ * entendia direito a diferença entre "Vagas" e "Anuncie". Agora quem procura
+ * emprego e quem quer contratar entram pelo mesmo lugar e escolhem lá dentro.
+ *
+ * Abre ao passar o mouse, mas também ao clicar — no notebook com tela de
+ * toque e no tablet não existe "passar o mouse". E fecha com Esc ou quando
+ * o foco sai, para quem navega pelo teclado.
+ */
+function MenuVagas() {
+  const [aberto, setAberto] = useState(false);
+  const caixa = useRef<HTMLDivElement>(null);
+
+  return (
+    <div
+      ref={caixa}
+      className="relative"
+      onMouseEnter={() => setAberto(true)}
+      onMouseLeave={() => setAberto(false)}
+      onFocus={() => setAberto(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) setAberto(false);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setAberto(false);
+      }}
+    >
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={aberto}
+        onClick={() => setAberto((v) => !v)}
+        className="botao-topo botao-topo-azul"
+      >
+        <Briefcase size={15} /> Vagas
+        <ChevronDown size={14} className={`transition-transform ${aberto ? "rotate-180" : ""}`} />
+      </button>
+
+      {aberto && (
+        <div className="menu-vagas" role="menu">
+          <Link to="/vagas" role="menuitem" className="menu-vagas-item" onClick={() => setAberto(false)}>
+            <Search size={15} className="text-white/50" />
+            <span>
+              Ver vagas
+              <small>Oportunidades abertas na região</small>
+            </span>
+          </Link>
+
+          <Link
+            to="/anuncie"
+            role="menuitem"
+            className="menu-vagas-item menu-vagas-item-destaque"
+            onClick={() => setAberto(false)}
+          >
+            <Store size={15} />
+            <span>
+              Anuncie sua vaga
+              <small>Para empresas e comércios</small>
+            </span>
+          </Link>
+        </div>
+      )}
+    </div>
   );
 }
