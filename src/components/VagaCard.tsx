@@ -1,5 +1,6 @@
 import { Briefcase, MapPin, Clock } from "lucide-react";
 import { formatarDataCurta } from "@/lib/site";
+import { caminhoDeCampanha, normalizarWhatsApp } from "@/lib/whatsapp";
 
 export interface Vaga {
   id: number;
@@ -16,9 +17,10 @@ export interface Vaga {
 }
 
 export function VagaCard({ vaga }: { vaga: Vaga }) {
-  const contatoWhats = vaga.contato && /^\d{10,13}$/.test(vaga.contato.replace(/\D/g, ""))
-    ? `https://wa.me/55${vaga.contato.replace(/\D/g, "").slice(-11)}`
-    : null;
+  // O botão vai para a nossa página de passagem, não para o wa.me.
+  // É ela que dispara o evento de contato no pixel e mantém o número do
+  // cliente fora do endereço — veja src/lib/whatsapp.ts.
+  const temWhats = normalizarWhatsApp(vaga.contato) !== null;
 
   return (
     <article className="cartao p-6 flex flex-col gap-3.5 hover:border-gray-300 transition">
@@ -56,9 +58,9 @@ export function VagaCard({ vaga }: { vaga: Vaga }) {
       {vaga.contato && (
         <div className="pt-2 border-t border-gray-100">
           <p className="rotulo mb-2">Como se candidatar</p>
-          {contatoWhats ? (
+          {temWhats ? (
             <a
-              href={contatoWhats}
+              href={caminhoDeCampanha(vaga.id)}
               target="_blank"
               rel="noreferrer"
               className="botao-vermelho inline-block px-5 py-2.5 text-sm"

@@ -1,67 +1,91 @@
-PIXEL DA META INSTALADO
-=======================
-Pixel ID: 1371846984551365
+REDIRECIONAMENTO DE WHATSAPP NAS VAGAS
+======================================
 
+O link para colar nos anuncios da Meta:
 
-ARQUIVOS
---------
-src/lib/pixel.ts              NOVO   - o codigo do pixel
-src/components/PixelDeRota.tsx NOVO  - conta visita a cada troca de pagina
-src/routes/__root.tsx         substitui - liga o pixel no site
-netlify.toml                  substitui - libera a Meta na regra de seguranca
-CLAUDE.md                     substitui - anota as duas armadilhas
+    https://paranoanews.com.br/ir/vaga/13
+
+Onde 13 e o numero da vaga. Voce copia esse link direto no painel,
+em Vagas > coluna Acoes > "link".
 
 
 COMO APLICAR
 ------------
-1. Extraia o zip por cima da pasta do site, mantendo a estrutura:
+1. Extraia o zip por cima da pasta do site:
 
-   Expand-Archive -Path "$HOME\Downloads\pixel-meta.zip" `
+   Expand-Archive -Path "$HOME\Downloads\redirect-vagas.zip" `
      -DestinationPath "$HOME\OneDrive\Documentos\Paranoá News\site\paranoa-news" -Force
 
 2. Suba:
 
    cd "$HOME\OneDrive\Documentos\Paranoá News\site\paranoa-news"
    git add -A
-   git commit -m "pixel da Meta"
+   git commit -m "redirecionamento de whatsapp nas vagas"
    git push
 
-O Netlify publica em 1-2 minutos.
+Nao precisa mexer no banco de dados. Nenhuma tabela mudou.
 
 
-COMO CONFERIR QUE FUNCIONOU
----------------------------
-1. Instale a extensao "Meta Pixel Helper" no Chrome
-2. Abra paranoanews.com.br
-3. O icone deve ficar azul e mostrar 1 pixel + evento PageView
-4. Clique numa materia: o Helper deve somar mais um PageView
-   (esse e o teste que importa - e onde a instalacao padrao falha)
+ARQUIVOS
+--------
+src/lib/whatsapp.ts              NOVO  - monta os links
+src/routes/ir.vaga.$id.tsx       NOVO  - a tela de passagem
+src/routeTree.gen.ts             gerado automaticamente, so registra a rota nova
+src/components/VagaCard.tsx      substitui - botao agora vai pra tela de passagem
+src/routes/_authenticated/admin.vagas.tsx  substitui - botao de copiar o link
+src/index.css                    substitui - visual da tela de passagem
+public/robots.txt                substitui - tira /ir do Google
+netlify.toml                     substitui - noindex e sem cache em /ir
+CLAUDE.md                        substitui - anota a regra
 
-Ou: Gerenciador de Eventos da Meta > seu pixel > "Testar eventos",
-cole o endereco do site e navegue.
 
-Os dados levam ate 20 minutos para aparecer no painel normal.
-
-
-DETALHES DA INSTALACAO
+COMO USAR NO DIA A DIA
 ----------------------
-- O pixel NAO roda em /admin, /auth e /painel. A redacao navegando no
-  painel nao e audiencia e so sujaria os numeros.
-- A contagem de pagina foi separada do carregamento, porque este site
-  nao recarrega ao trocar de materia (veja abaixo).
-- A regra de seguranca do site (CSP) foi ajustada para liberar
-  connect.facebook.net e www.facebook.com - e so isso. Nenhum outro
-  dominio de fora ganhou permissao.
+1. Entre no painel > Vagas
+2. Na linha da vaga, clique em "link" (copia sozinho)
+3. Cole no anuncio da Meta como destino
+4. O icone ao lado do "link" abre a tela SEM redirecionar,
+   pra voce conferir antes de subir a campanha
+
+Vagas sem WhatsApp valido mostram "sem zap" no lugar do botao.
 
 
-POR QUE O CODIGO NAO FOI COLADO COMO A META MANDA
---------------------------------------------------
-O codigo da Meta foi escrito para site tradicional, onde cada clique
-recarrega o navegador inteiro e o script roda de novo, contando a pagina.
+O QUE MUDOU EM RELACAO AO SEU ARQUIVO
+-------------------------------------
+O seu index.html tinha duas partes: a tela de redirecionamento e um
+painel com senha pra gerar link cliente por cliente.
 
-Este site troca o conteudo sem recarregar. Colado do jeito padrao, ele
-contaria UMA visita por pessoa, mesmo que ela leia dez materias - e os
-publicos e anuncios da Meta ficariam com menos da metade do trafego real.
+O gerador saiu, e nao por preguica: a vaga JA esta no banco com cargo,
+empresa e telefone. Preencher tudo de novo num formulario era digitar
+duas vezes a mesma coisa, e todo dado digitado duas vezes uma hora
+diverge. Agora o link e sempre o site + o numero da vaga.
 
-O codigo e o mesmo, letra por letra. So o "fbq('track','PageView')" saiu
-do final do script e virou uma chamada a cada troca de pagina.
+Mudanca importante de seguranca:
+
+  seu link:  ...?wpp=5561988880002&vaga=Auxiliar&msg=...
+  agora:     ...ir/vaga/13
+
+No seu formato o telefone do cliente ia dentro do endereco - ou seja,
+a Meta veria o numero de todos eles, que e exatamente o que voce
+queria evitar. Agora o telefone fica so no banco.
+
+Outras diferencas:
+- A tela dispara o evento "Contact" no pixel. Sem isso a campanha nao
+  teria conversao nenhuma pra otimizar.
+- Usa location.replace no lugar de location.href: quem volta do
+  WhatsApp nao cai de novo na tela e e reenviado em laco.
+- Vaga encerrada, apagada ou sem WhatsApp mostra uma tela com link pras
+  vagas abertas, em vez de mandar pra um numero morto.
+- Se o banco demorar mais de 6 segundos, mostra saida manual em vez de
+  deixar a pessoa presa na roda girando.
+- A espera caiu de 2,5s pra 1,8s. E o tempo que o pixel precisa pra
+  entregar o evento; o resto so custa candidato desistindo.
+  Pra mudar: TEMPO_ESPERA no topo de src/routes/ir.vaga.$id.tsx
+
+
+SOBRE O LOGO QUE VOCE MANDOU
+----------------------------
+A tela usa o logo que ja esta no site (public/logo.png), entao nao
+precisa subir nada. Mas o logo do anexo e rosa/magenta e o que esta
+no site e vermelho. Se quiser trocar o do site inteiro pelo rosa,
+me avisa que eu troco.

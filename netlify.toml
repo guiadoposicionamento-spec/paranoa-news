@@ -66,6 +66,14 @@
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
 
+# Passagem para o WhatsApp da vaga. Nao e conteudo e nao pode ficar em cache:
+# se a vaga fechar ou o telefone mudar, o link tem que refletir na hora.
+[[headers]]
+  for = "/ir/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+
 [[headers]]
   for = "/robots.txt"
   [headers.values]

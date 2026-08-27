@@ -8,6 +8,15 @@
   --brand-ink-2: #16171A;
   --brand-line: rgba(255, 255, 255, 0.10);
 
+  /* Curvas e durações de movimento.
+     Valores da skill "animate" (.agents/skills/animate) — as curvas nativas
+     do CSS são fracas demais para interface. Não invente cubic-bezier novo:
+     use estes ou pegue em easing.dev. */
+  --ease-saida: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-vaivem: cubic-bezier(0.77, 0, 0.175, 1);
+  --tempo-menu: 180ms;
+  --tempo-toque: 140ms;
+
   /* Superfícies claras */
   --surface: #FFFFFF;
   --surface-muted: #F5F6F7;
@@ -66,16 +75,21 @@ body {
 
   /* ---------- Tipografia editorial ---------- */
 
+  /* text-wrap: balance distribui as palavras entre as linhas — sem ele a
+     manchete sai com quatro palavras em cima e uma sozinha embaixo.
+     É o elemento mais visto do portal, vale a linha de CSS. */
   .titulo-hero {
     font-weight: 900;
     letter-spacing: -0.035em;
     line-height: 0.98;
+    text-wrap: balance;
   }
 
   .titulo-secao {
     font-weight: 900;
     letter-spacing: -0.02em;
     line-height: 1.1;
+    text-wrap: balance;
   }
 
   /* Cartola de seção: linha vermelha curta + texto */
@@ -102,10 +116,17 @@ body {
 
   /* ---------- Componentes ---------- */
 
+  /* Sombra em vez de borda: a primeira camada faz o papel do traço, as
+     outras duas dão profundidade. Funciona sobre fundo de qualquer cor,
+     coisa que borda sólida não faz. */
   .cartao {
     background: var(--surface);
-    border: 1px solid var(--border);
     border-radius: 10px;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 1px 2px -1px rgba(0, 0, 0, 0.06),
+      0 2px 4px 0 rgba(0, 0, 0, 0.04);
+    transition: box-shadow var(--tempo-toque) ease;
   }
 
   .botao-vermelho {
@@ -170,14 +191,21 @@ body {
   /* ---------- Corpo da matéria ---------- */
 
   .prose { font-size: 1.0625rem; color: #2A2C31; }
-  .prose p { margin-bottom: 1.15rem; line-height: 1.75; }
-  .prose h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 2.25rem 0 0.75rem; }
-  .prose h3 { font-size: 1.2rem; font-weight: 800; margin: 1.75rem 0 0.5rem; }
+  .prose p { margin-bottom: 1.15rem; line-height: 1.75; text-wrap: pretty; }
+  .prose h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 2.25rem 0 0.75rem; text-wrap: balance; }
+  .prose h3 { font-size: 1.2rem; font-weight: 800; margin: 1.75rem 0 0.5rem; text-wrap: balance; }
   .prose ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 1.15rem; }
   .prose ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 1.15rem; }
   .prose li { margin-bottom: 0.4rem; line-height: 1.7; }
   .prose a { color: var(--brand-red); text-decoration: underline; text-underline-offset: 2px; }
-  .prose img { border-radius: 8px; margin: 1.75rem 0; }
+  /* Foto clara sobre fundo claro perde a borda. O contorno por dentro
+     (offset negativo) segura o limite sem mudar o tamanho do elemento. */
+  .prose img {
+    border-radius: 8px;
+    margin: 1.75rem 0;
+    outline: 1px solid rgba(0, 0, 0, 0.1);
+    outline-offset: -1px;
+  }
   .prose blockquote {
     border-left: 3px solid var(--brand-red);
     padding: 0.25rem 0 0.25rem 1.15rem;
@@ -321,6 +349,52 @@ body {
        do mouse. A margem visual vem do padding, não de um espaço morto. */
     padding-top: 0.5rem;
     min-width: 15rem;
+
+    /* Fechado: some para o olho, some para o clique e some para o leitor de
+       tela. Transição, e não keyframe, porque o usuário pode abrir e fechar
+       depressa — transição retoma do ponto atual, keyframe recomeça do zero.
+       180ms fica na faixa que a skill "animate" indica para dropdown. */
+    opacity: 0;
+    transform: translateY(-4px);
+    filter: blur(4px);
+    pointer-events: none;
+    visibility: hidden;
+    /* Saída de propósito mais discreta que a entrada: ao fechar, o menu só
+       apaga e desfoca. O transform volta ao lugar de uma vez, mas só depois
+       que já sumiu da tela (0s com atraso), então ninguém vê o pulo — e o
+       menu não repete o movimento ao contrário, que é o que deixa dropdown
+       com cara de pesado. */
+    transition:
+      opacity var(--tempo-menu) var(--ease-saida),
+      filter var(--tempo-menu) var(--ease-saida),
+      transform 0s linear var(--tempo-menu),
+      visibility 0s linear var(--tempo-menu);
+  }
+
+  .menu-vagas-aberto {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    pointer-events: auto;
+    visibility: visible;
+    /* O deslize só existe na entrada */
+    transition:
+      opacity var(--tempo-menu) var(--ease-saida),
+      transform var(--tempo-menu) var(--ease-saida),
+      filter var(--tempo-menu) var(--ease-saida),
+      visibility 0s linear 0s;
+  }
+
+  /* Quem pede menos animação recebe só o aparecer e sumir, sem deslocamento */
+  @media (prefers-reduced-motion: reduce) {
+    .menu-vagas {
+      transform: none;
+      filter: none;
+      transition:
+        opacity 120ms ease,
+        visibility 0s linear 120ms;
+    }
+    .menu-vagas-aberto { transform: none; filter: none; }
   }
 
   .menu-vagas > * {
@@ -409,6 +483,133 @@ body {
     min-height: 76px;
     padding-block: 0.875rem;
   }
+
+  /* ---------- Tela de redirecionamento para o WhatsApp ---------- */
+
+  /* Fundo escuro de propósito: quem chega aqui vem de um anúncio e não é
+     leitor do portal ainda. A tela precisa dizer "é sério e é rápido" sem
+     parecer mais uma página para ler. */
+  .redirect-tela {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    background: radial-gradient(circle at 50% -10%, var(--brand-ink-2) 0%, var(--brand-ink) 65%);
+    color: #fff;
+  }
+
+  .redirect-cartao {
+    width: 100%;
+    max-width: 26rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .redirect-logo { height: 3.25rem; width: auto; margin-bottom: 1.5rem; }
+
+  .redirect-vaga {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .redirect-empresa {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.125rem;
+  }
+
+  .redirect-roda {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 2.25rem 0 1.5rem;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.12);
+    border-top-color: var(--brand-red);
+    animation: girar-redirect 900ms linear infinite;
+    transition: border-top-color 300ms var(--ease-saida);
+  }
+
+  /* Vira verde na metade do caminho: o olho entende que o WhatsApp vem aí
+     antes de a frase mudar. */
+  .redirect-roda-zap { border-top-color: #25D366; }
+
+  .redirect-status { font-size: 1rem; font-weight: 600; min-height: 1.5rem; }
+
+  .redirect-barra {
+    width: 100%;
+    max-width: 15rem;
+    height: 6px;
+    margin-top: 1.25rem;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .redirect-barra-cheia {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--brand-red), #25D366);
+    transition: width 100ms linear;
+  }
+
+  .redirect-zap {
+    display: inline-block;
+    margin-top: 2rem;
+    background: #25D366;
+    color: #04310F;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.9375rem 1.625rem;
+    border-radius: 0.875rem;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  }
+
+  .redirect-titulo {
+    font-size: 1.375rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-top: 0.5rem;
+    text-wrap: balance;
+  }
+
+  .redirect-texto {
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .redirect-botao {
+    display: inline-block;
+    margin-top: 1.75rem;
+    background: var(--brand-red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    padding: 0.8125rem 1.5rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+  }
+
+  .redirect-rodape {
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* A roda girando sem parar é justamente o que incomoda quem pediu menos
+     movimento. O aviso continua, só que parado. */
+  @media (prefers-reduced-motion: reduce) {
+    .redirect-roda { animation: none; border-top-color: #25D366; }
+    .redirect-barra-cheia { transition: none; }
+  }
 }
 
 /* Fora de @layer de propósito: keyframes não participam da cascata em
@@ -416,4 +617,8 @@ body {
 @keyframes correr-cidades {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
+}
+
+@keyframes girar-redirect {
+  to { transform: rotate(360deg); }
 }

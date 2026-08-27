@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Link2, Check, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { VagaFormFields, vagaVazia, type VagaForm } from "@/components/VagaForm";
 import { formatarDataCurta } from "@/lib/site";
+import { caminhoDeCampanha, linkDeCampanha, normalizarWhatsApp } from "@/lib/whatsapp";
 
 export const Route = createFileRoute("/_authenticated/admin/vagas")({ component: VagasAdmin });
 
@@ -154,7 +155,8 @@ function VagasAdmin() {
                 </td>
                 <td className="px-4 py-3 text-gray-500">{formatarDataCurta(v.created_at)}</td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-3 justify-end">
+                  <div className="flex gap-3 justify-end items-center">
+                    <LinkDeCampanha vaga={v} />
                     <button onClick={() => editar(v)} className="text-blue-600 font-semibold">Editar</button>
                     <button
                       onClick={() => { if (confirm("Excluir esta vaga?")) excluir.mutate(v.id); }}
@@ -170,6 +172,60 @@ function VagasAdmin() {
         </table>
       </div>
     </div>
+  );
+}
+
+/**
+ * Copia o endereço que vai no anúncio da Meta.
+ *
+ * Substitui o gerador de links que existia à parte: a vaga já está no banco
+ * com cargo, empresa e telefone, então não há o que preencher de novo — o
+ * link é sempre o site + o id da vaga.
+ */
+function LinkDeCampanha({ vaga }: { vaga: any }) {
+  const [copiado, setCopiado] = useState(false);
+
+  if (!normalizarWhatsApp(vaga.contato)) {
+    return <span className="text-xs text-gray-400" title="Esta vaga não tem WhatsApp válido">sem zap</span>;
+  }
+
+  async function copiar() {
+    const link = linkDeCampanha(vaga.id);
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      // Navegador antigo ou página sem HTTPS: cai no jeito velho
+      const campo = document.createElement("textarea");
+      campo.value = link;
+      document.body.appendChild(campo);
+      campo.select();
+      document.execCommand("copy");
+      document.body.removeChild(campo);
+    }
+    setCopiado(true);
+    window.setTimeout(() => setCopiado(false), 1800);
+  }
+
+  return (
+    <span className="flex items-center gap-2">
+      <button
+        onClick={copiar}
+        title="Copiar o link para usar no anúncio da Meta"
+        className={`font-semibold flex items-center gap-1 ${copiado ? "text-green-600" : "text-gray-600"}`}
+      >
+        {copiado ? <Check size={14} /> : <Link2 size={14} />}
+        {copiado ? "copiado" : "link"}
+      </button>
+      <a
+        href={`${caminhoDeCampanha(vaga.id)}?teste=1`}
+        target="_blank"
+        rel="noreferrer"
+        title="Ver a tela sem ser redirecionado"
+        className="text-gray-400"
+      >
+        <ExternalLink size={14} />
+      </a>
+    </span>
   );
 }
 

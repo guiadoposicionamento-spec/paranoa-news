@@ -26,6 +26,7 @@ import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminDenunciasRouteImport } from './routes/_authenticated/admin.denuncias'
 import { Route as AuthenticatedAdminNoticiasRouteImport } from './routes/_authenticated/admin.noticias'
 import { Route as AuthenticatedAdminVagasRouteImport } from './routes/_authenticated/admin.vagas'
+import { Route as IrVagaIdRouteImport } from './routes/ir.vaga.$id'
 import { Route as AuthenticatedAdminNoticiasIndexRouteImport } from './routes/_authenticated/admin.noticias.index'
 import { Route as AuthenticatedAdminNoticiasNovaRouteImport } from './routes/_authenticated/admin.noticias.nova'
 import { Route as AuthenticatedAdminNoticiasIdEditarRouteImport } from './routes/_authenticated/admin.noticias.$id.editar'
@@ -117,6 +118,11 @@ const AuthenticatedAdminVagasRoute = AuthenticatedAdminVagasRouteImport.update({
   path: '/vagas',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const IrVagaIdRoute = IrVagaIdRouteImport.update({
+  id: '/ir/vaga/$id',
+  path: '/ir/vaga/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminNoticiasIndexRoute =
   AuthenticatedAdminNoticiasIndexRouteImport.update({
     id: '/',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
   '/admin/noticias': typeof AuthenticatedAdminNoticiasRouteWithChildren
   '/admin/vagas': typeof AuthenticatedAdminVagasRoute
+  '/ir/vaga/$id': typeof IrVagaIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/noticias/nova': typeof AuthenticatedAdminNoticiasNovaRoute
   '/admin/noticias/': typeof AuthenticatedAdminNoticiasIndexRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
   '/admin/vagas': typeof AuthenticatedAdminVagasRoute
+  '/ir/vaga/$id': typeof IrVagaIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/noticias/nova': typeof AuthenticatedAdminNoticiasNovaRoute
   '/admin/noticias': typeof AuthenticatedAdminNoticiasIndexRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/denuncias': typeof AuthenticatedAdminDenunciasRoute
   '/_authenticated/admin/noticias': typeof AuthenticatedAdminNoticiasRouteWithChildren
   '/_authenticated/admin/vagas': typeof AuthenticatedAdminVagasRoute
+  '/ir/vaga/$id': typeof IrVagaIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/noticias/nova': typeof AuthenticatedAdminNoticiasNovaRoute
   '/_authenticated/admin/noticias/': typeof AuthenticatedAdminNoticiasIndexRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin/denuncias'
     | '/admin/noticias'
     | '/admin/vagas'
+    | '/ir/vaga/$id'
     | '/admin/'
     | '/admin/noticias/nova'
     | '/admin/noticias/'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/denuncias'
     | '/admin/vagas'
+    | '/ir/vaga/$id'
     | '/admin'
     | '/admin/noticias/nova'
     | '/admin/noticias'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/denuncias'
     | '/_authenticated/admin/noticias'
     | '/_authenticated/admin/vagas'
+    | '/ir/vaga/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/noticias/nova'
     | '/_authenticated/admin/noticias/'
@@ -270,6 +282,7 @@ export interface RootRouteChildren {
   VagasRoute: typeof VagasRoute
   CategoriaCategoriaRoute: typeof CategoriaCategoriaRoute
   NoticiaSlugRoute: typeof NoticiaSlugRoute
+  IrVagaIdRoute: typeof IrVagaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -393,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVagasRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/ir/vaga/$id': {
+      id: '/ir/vaga/$id'
+      path: '/ir/vaga/$id'
+      fullPath: '/ir/vaga/$id'
+      preLoaderRoute: typeof IrVagaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/noticias/': {
       id: '/_authenticated/admin/noticias/'
       path: '/'
@@ -490,6 +510,7 @@ const rootRouteChildren: RootRouteChildren = {
   VagasRoute: VagasRoute,
   CategoriaCategoriaRoute: CategoriaCategoriaRoute,
   NoticiaSlugRoute: NoticiaSlugRoute,
+  IrVagaIdRoute: IrVagaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
