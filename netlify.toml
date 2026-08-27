@@ -39,8 +39,13 @@
     # importa: carregar codigo de qualquer outro dominio.
     #
     # img-src aceita https: em geral porque a redacao pode usar foto de
-    # agencia hospedada fora. connect-src so libera o Supabase.
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+    # agencia hospedada fora. connect-src so libera o Supabase e a Meta.
+    #
+    # connect.facebook.net e www.facebook.com estao liberados por causa do
+    # pixel da Meta: o primeiro entrega o fbevents.js, o segundo recebe os
+    # eventos. Sao os dois unicos dominios de fora que podem rodar codigo
+    # aqui, e nenhum outro entra sem passar por esta linha.
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.facebook.com https://connect.facebook.net; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
 
 # O painel e o login nao devem ser guardados em cache nem indexados
 [[headers]]

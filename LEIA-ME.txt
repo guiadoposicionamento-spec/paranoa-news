@@ -1,0 +1,67 @@
+PIXEL DA META INSTALADO
+=======================
+Pixel ID: 1371846984551365
+
+
+ARQUIVOS
+--------
+src/lib/pixel.ts              NOVO   - o codigo do pixel
+src/components/PixelDeRota.tsx NOVO  - conta visita a cada troca de pagina
+src/routes/__root.tsx         substitui - liga o pixel no site
+netlify.toml                  substitui - libera a Meta na regra de seguranca
+CLAUDE.md                     substitui - anota as duas armadilhas
+
+
+COMO APLICAR
+------------
+1. Extraia o zip por cima da pasta do site, mantendo a estrutura:
+
+   Expand-Archive -Path "$HOME\Downloads\pixel-meta.zip" `
+     -DestinationPath "$HOME\OneDrive\Documentos\Paranoá News\site\paranoa-news" -Force
+
+2. Suba:
+
+   cd "$HOME\OneDrive\Documentos\Paranoá News\site\paranoa-news"
+   git add -A
+   git commit -m "pixel da Meta"
+   git push
+
+O Netlify publica em 1-2 minutos.
+
+
+COMO CONFERIR QUE FUNCIONOU
+---------------------------
+1. Instale a extensao "Meta Pixel Helper" no Chrome
+2. Abra paranoanews.com.br
+3. O icone deve ficar azul e mostrar 1 pixel + evento PageView
+4. Clique numa materia: o Helper deve somar mais um PageView
+   (esse e o teste que importa - e onde a instalacao padrao falha)
+
+Ou: Gerenciador de Eventos da Meta > seu pixel > "Testar eventos",
+cole o endereco do site e navegue.
+
+Os dados levam ate 20 minutos para aparecer no painel normal.
+
+
+DETALHES DA INSTALACAO
+----------------------
+- O pixel NAO roda em /admin, /auth e /painel. A redacao navegando no
+  painel nao e audiencia e so sujaria os numeros.
+- A contagem de pagina foi separada do carregamento, porque este site
+  nao recarrega ao trocar de materia (veja abaixo).
+- A regra de seguranca do site (CSP) foi ajustada para liberar
+  connect.facebook.net e www.facebook.com - e so isso. Nenhum outro
+  dominio de fora ganhou permissao.
+
+
+POR QUE O CODIGO NAO FOI COLADO COMO A META MANDA
+--------------------------------------------------
+O codigo da Meta foi escrito para site tradicional, onde cada clique
+recarrega o navegador inteiro e o script roda de novo, contando a pagina.
+
+Este site troca o conteudo sem recarregar. Colado do jeito padrao, ele
+contaria UMA visita por pessoa, mesmo que ela leia dez materias - e os
+publicos e anuncios da Meta ficariam com menos da metade do trafego real.
+
+O codigo e o mesmo, letra por letra. So o "fbq('track','PageView')" saiu
+do final do script e virou uma chamada a cada troca de pagina.

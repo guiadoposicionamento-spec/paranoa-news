@@ -6,6 +6,8 @@ import {
 } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { SITE } from "@/lib/site";
+import { SCRIPT_PIXEL, IMAGEM_SEM_SCRIPT } from "@/lib/pixel";
+import { PixelDeRota } from "@/components/PixelDeRota";
 import css from "../index.css?url";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
@@ -35,7 +37,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   shellComponent: RootDocument,
-  component: () => <Outlet />,
+  component: () => (
+    <>
+      <PixelDeRota />
+      <Outlet />
+    </>
+  ),
   notFoundComponent: NotFound,
 });
 
@@ -44,8 +51,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="pt-BR">
       <head>
         <HeadContent />
+
+        {/* Pixel da Meta.
+            Fica no <head> e antes do React de propósito: assim ele já está
+            carregando enquanto o site monta, e nenhuma visita se perde com
+            quem abre e fecha rápido. O PageView em si não sai daqui — quem
+            conta é o PixelDeRota, porque aqui a página nunca recarrega. */}
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_PIXEL }} />
       </head>
       <body>
+        {/* Para quem navega com JavaScript desligado */}
+        <noscript>
+          <img height="1" width="1" style={{ display: "none" }} src={IMAGEM_SEM_SCRIPT} alt="" />
+        </noscript>
         {children}
         <Scripts />
       </body>
