@@ -38,17 +38,6 @@ de não animar é resultado válido.
   TanStack Query, senão a tela mostra valor velho. Veja `src/lib/cacheNoticias.ts`.
 - **Segurança fecha por padrão.** O webhook da Kiwify recusa tudo sem o
   segredo cadastrado; políticas do banco negam por omissão.
-- **Script de fora do site só funciona se entrar na CSP** do `netlify.toml`
-  (`script-src` para o arquivo, `connect-src` para onde ele manda dados).
-  Sem isso o navegador bloqueia calado e nada aparece no console de quem
-  não estiver olhando. Foi o caso do pixel da Meta.
-- **Medição de página é feita à mão**, em `src/components/PixelDeRota.tsx`.
-  O site nunca recarrega, então nenhuma ferramenta de análise conta as
-  visitas sozinha — quem trocar de ferramenta precisa refazer isso.
-- **Botão de WhatsApp de vaga nunca aponta para o `wa.me` direto.** Passa
-  por `/ir/vaga/:id`, que dispara o evento de conversão e mantém o telefone
-  do cliente fora do endereço — é o link que vai nos anúncios da Meta.
-  Encurtar esse caminho quebra a campanha e expõe o número.
 
 ## Estrutura
 

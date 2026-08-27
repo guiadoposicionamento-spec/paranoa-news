@@ -162,16 +162,26 @@ function MenuVagas() {
         type="button"
         aria-haspopup="menu"
         aria-expanded={aberto}
-        onClick={() => setAberto((v) => !v)}
+        onClick={() => {
+          // No computador o mouse já abriu o menu antes do clique chegar.
+          // Se o clique alternasse, ele fecharia na hora — e no celular,
+          // onde o toque dispara "entrou o mouse" e "clicou" em sequência,
+          // o menu abriria e fecharia sozinho. Então: onde existe mouse o
+          // clique só abre; onde não existe, ele alterna.
+          const temMouse = window.matchMedia("(hover: hover)").matches;
+          setAberto((v) => (temMouse ? true : !v));
+        }}
         className="botao-topo botao-topo-azul"
       >
         <Briefcase size={15} /> Vagas
         <ChevronDown size={14} className={`transition-transform ${aberto ? "rotate-180" : ""}`} />
       </button>
 
-      {aberto && (
-        <div className="menu-vagas" role="menu">
-          <Link to="/vagas" role="menuitem" className="menu-vagas-item" onClick={() => setAberto(false)}>
+      {/* O painel fica sempre montado e só troca de estado. Com transição em
+          vez de montar/desmontar, o menu pode ser interrompido no meio: abrir,
+          fechar e abrir de novo não reinicia a animação do zero. */}
+      <div className={`menu-vagas ${aberto ? "menu-vagas-aberto" : ""}`} role="menu" aria-hidden={!aberto}>
+          <Link to="/vagas" role="menuitem" className="menu-vagas-item" tabIndex={aberto ? 0 : -1} onClick={() => setAberto(false)}>
             <Search size={15} className="text-white/50" />
             <span>
               Ver vagas
@@ -183,6 +193,7 @@ function MenuVagas() {
             to="/anuncie"
             role="menuitem"
             className="menu-vagas-item menu-vagas-item-destaque"
+            tabIndex={aberto ? 0 : -1}
             onClick={() => setAberto(false)}
           >
             <Store size={15} />
@@ -191,8 +202,7 @@ function MenuVagas() {
               <small>Para empresas e comércios</small>
             </span>
           </Link>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
