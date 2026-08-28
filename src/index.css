@@ -340,6 +340,10 @@ body {
 
   /* ---------- Menu do botão Vagas ---------- */
 
+  /* ATENÇÃO: estas regras andam juntas com src/components/Header.tsx.
+     O painel fica escondido até o React pôr a classe .menu-vagas-aberto.
+     Se este arquivo for atualizado sem o Header, ou o contrário, o menu
+     some da tela sem dar nenhum erro. Já aconteceu — atualize os dois. */
   .menu-vagas {
     position: absolute;
     top: 100%;
@@ -483,6 +487,133 @@ body {
     min-height: 76px;
     padding-block: 0.875rem;
   }
+
+  /* ---------- Tela de redirecionamento para o WhatsApp ---------- */
+
+  /* Fundo escuro de propósito: quem chega aqui vem de um anúncio e não é
+     leitor do portal ainda. A tela precisa dizer "é sério e é rápido" sem
+     parecer mais uma página para ler. */
+  .redirect-tela {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    background: radial-gradient(circle at 50% -10%, var(--brand-ink-2) 0%, var(--brand-ink) 65%);
+    color: #fff;
+  }
+
+  .redirect-cartao {
+    width: 100%;
+    max-width: 26rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .redirect-logo { height: 3.25rem; width: auto; margin-bottom: 1.5rem; }
+
+  .redirect-vaga {
+    font-size: 1.0625rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  .redirect-empresa {
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 0.125rem;
+  }
+
+  .redirect-roda {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin: 2.25rem 0 1.5rem;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.12);
+    border-top-color: var(--brand-red);
+    animation: girar-redirect 900ms linear infinite;
+    transition: border-top-color 300ms var(--ease-saida);
+  }
+
+  /* Vira verde na metade do caminho: o olho entende que o WhatsApp vem aí
+     antes de a frase mudar. */
+  .redirect-roda-zap { border-top-color: #25D366; }
+
+  .redirect-status { font-size: 1rem; font-weight: 600; min-height: 1.5rem; }
+
+  .redirect-barra {
+    width: 100%;
+    max-width: 15rem;
+    height: 6px;
+    margin-top: 1.25rem;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+  }
+
+  .redirect-barra-cheia {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--brand-red), #25D366);
+    transition: width 100ms linear;
+  }
+
+  .redirect-zap {
+    display: inline-block;
+    margin-top: 2rem;
+    background: #25D366;
+    color: #04310F;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.9375rem 1.625rem;
+    border-radius: 0.875rem;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  }
+
+  .redirect-titulo {
+    font-size: 1.375rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin-top: 0.5rem;
+    text-wrap: balance;
+  }
+
+  .redirect-texto {
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.625rem;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .redirect-botao {
+    display: inline-block;
+    margin-top: 1.75rem;
+    background: var(--brand-red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    padding: 0.8125rem 1.5rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+  }
+
+  .redirect-rodape {
+    margin-top: 2.5rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  /* A roda girando sem parar é justamente o que incomoda quem pediu menos
+     movimento. O aviso continua, só que parado. */
+  @media (prefers-reduced-motion: reduce) {
+    .redirect-roda { animation: none; border-top-color: #25D366; }
+    .redirect-barra-cheia { transition: none; }
+  }
 }
 
 /* Fora de @layer de propósito: keyframes não participam da cascata em
@@ -490,4 +621,8 @@ body {
 @keyframes correr-cidades {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
+}
+
+@keyframes girar-redirect {
+  to { transform: rotate(360deg); }
 }
